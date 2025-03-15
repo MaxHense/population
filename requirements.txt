@@ -1,0 +1,6 @@
+fastapi
+uvicorn
+wheel
+numpy
+pandas
+python-multipart
