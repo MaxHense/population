@@ -4,3 +4,7 @@ wheel
 numpy
 pandas
 python-multipart
+logging
+sqlmodel
+alembic
+psycopg2-binary

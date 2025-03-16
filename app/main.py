@@ -1,12 +1,31 @@
 import pandas as pd
+import logging
+import subprocess
+import sys
 
+from contextlib import asynccontextmanager
 from typing import Union
 from fastapi import FastAPI, UploadFile
 from io import StringIO
 from starlette.background import BackgroundTasks
 
-app = FastAPI()
+logger = logging.getLogger(__name__)
+logger.setLevel(logging.INFO)  # Set logging level to INFO
+handler = logging.StreamHandler(sys.stdout)
+handler.setLevel(logging.INFO)
+formatter = logging.Formatter("%(asctime)s - %(levelname)s - %(message)s")
+handler.setFormatter(formatter)
+logger.addHandler(handler)
 
+def db_init():
+    logger.info("Hallo, Startup")
+
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    db_init()
+    yield
+
+app = FastAPI(lifespan=lifespan)
 
 @app.get("/")
 async def read_root():
@@ -23,10 +42,3 @@ async def upload_file(file: UploadFile):
     file_content = contents.decode("utf-8")
     df = pd.read_csv(StringIO(file_content))
     return {"filename": file.filename}
-
-def db_init():
-    print("Hello, Startup")
-
-@app.on_event("startup")
-async def startup_event():
-    db_init
