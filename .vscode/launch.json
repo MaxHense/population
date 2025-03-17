@@ -14,6 +14,20 @@
                 "--reload"
             ],
             "jinja": true
+        },
+        {
+            "name": "Alembic upgrade head",
+            "type": "debugpy",
+            "request": "launch",
+            "module": "alembic",
+            "args": ["upgrade", "head"]
+        },
+        {
+            "name": "Alembic revision",
+            "type": "debugpy",
+            "request": "launch",
+            "module": "alembic",
+            "args": ["alembic revision --autogenerate -m 'Added grid table' "]
         }
     ]
 }

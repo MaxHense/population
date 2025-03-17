@@ -1,3 +1,5 @@
+import os
+
 from logging.config import fileConfig
 
 from sqlalchemy import engine_from_config
@@ -7,10 +9,13 @@ from app.model import *
 
 from alembic import context
 
+from dotenv import load_dotenv
+
 # this is the Alembic Config object, which provides
 # access to the values within the .ini file in use.
 config = context.config
 
+config.set_main_option("sqlalchemy.url", os.environ['DBURL'])
 # Interpret the config file for Python logging.
 # This line sets up loggers basically.
 if config.config_file_name is not None:
@@ -21,6 +26,12 @@ if config.config_file_name is not None:
 # from myapp import mymodel
 # target_metadata = mymodel.Base.metadata
 target_metadata = SQLModel.metadata
+
+def include_name(name, type_, parent_names):
+    if type_ == "table":
+        # Include only tables that are in target_metadata.tables
+        return name in target_metadata.tables
+    return True
 
 # other values from the config, defined by the needs of env.py,
 # can be acquired:
@@ -45,6 +56,8 @@ def run_migrations_offline() -> None:
         url=url,
         target_metadata=target_metadata,
         literal_binds=True,
+        include_name=include_name,
+        include_schemas=True,
         dialect_opts={"paramstyle": "named"},
     )
 
@@ -67,7 +80,10 @@ def run_migrations_online() -> None:
 
     with connectable.connect() as connection:
         context.configure(
-            connection=connection, target_metadata=target_metadata
+            connection=connection,
+            target_metadata=target_metadata,
+            include_name=include_name,
+            include_schemas=True, 
         )
 
         with context.begin_transaction():
