@@ -1,22 +1,14 @@
 import pandas as pd
-import logging
-import subprocess
-import sys
+import json
 
 from contextlib import asynccontextmanager
-from typing import Union
-from fastapi import FastAPI, UploadFile
+from fastapi import FastAPI, File, Form, UploadFile, HTTPException
 from io import StringIO
-from starlette.background import BackgroundTasks
+from app.models import GridDTO, FullGridDTO
+from app.model import Grid
+from app.logger import logger
 
-logger = logging.getLogger(__name__)
-logger.setLevel(logging.INFO)  # Set logging level to INFO
-handler = logging.StreamHandler(sys.stdout)
-handler.setLevel(logging.INFO)
-formatter = logging.Formatter("%(asctime)s - %(levelname)s - %(message)s")
-handler.setFormatter(formatter)
-logger.addHandler(handler)
-
+#TODO: Implement alembic for database migrations
 def db_init():
     logger.info("Hallo, Startup")
 
@@ -27,18 +19,27 @@ async def lifespan(app: FastAPI):
 
 app = FastAPI(lifespan=lifespan)
 
-@app.get("/")
-async def read_root():
-    return {"Hello": "World"}
-
-
-@app.get("/items/{item_id}")
-async def read_item(item_id: int, q: Union[str, None] = None):
-    return {"item_id": item_id, "q": q}
-
 @app.post("/upload/")
-async def upload_file(file: UploadFile):
+async def upload_file(
+    grid: str = Form(...),
+    file: UploadFile = File(...)
+):
+    try:
+        grid_data = json.loads(grid)
+        grid_model = GridDTO(**grid_data)
+    except json.JSONDecodeError:
+        raise HTTPException(status_code=400, detail="Invalid JSON for 'grid'")
+    
+    newGrid = Grid.from_dto(grid_model)
+
+    newDTO = FullGridDTO.from_model(newGrid)
+
     contents = await file.read()
     file_content = contents.decode("utf-8")
     df = pd.read_csv(StringIO(file_content))
-    return {"filename": file.filename}
+
+    return {
+        "filename": file.filename,
+        "grid": newDTO,
+        "data_preview": df.head().to_dict()
+    }
