@@ -10,3 +10,5 @@ alembic
 psycopg2-binary
 pylint
 python-dotenv
+GeoAlchemy2
+pyproj

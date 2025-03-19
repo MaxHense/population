@@ -1,7 +1,9 @@
 import os
 
 from sqlmodel import Field, SQLModel, UniqueConstraint, Session, create_engine
-from typing import Optional
+from sqlalchemy import Column
+from geoalchemy2 import Geometry
+from typing import Optional, Any
 from app.models import GridDTO
 from dotenv import load_dotenv
 
@@ -30,3 +32,9 @@ class Grid(SQLModel, table=True):
             session.commit()
             session.refresh(grid)
             return grid
+
+class Location(SQLModel, table=True):
+    id: Optional[int] = Field(default=None, primary_key=True)
+    grid_id: int = Field(default=None, foreign_key="grid.id")
+    geom: Any = Field(sa_column=Column(Geometry("POINT", srid=3035)))
+    population: int
