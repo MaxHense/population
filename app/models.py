@@ -14,5 +14,5 @@ class FullGridDTO(GridDTO):
             id=model.id,
             name=model.name,
             size=model.size,
-            definition=model.definition
+            definition=model.definition,
         )
