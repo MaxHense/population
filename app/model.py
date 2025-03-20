@@ -1,18 +1,51 @@
+"""
+This module defines the database models and their associated methods for the population application.
+
+Classes:
+    Grid(SQLModel): Represents a grid entity with attributes such as name, size, and definition.
+        - from_dto(cls, dto: GridDTO): Class method to create a Grid instance from a GridDTO
+          object and save it to the database.
+
+    Location(SQLModel): Represents a location entity with attributes such as grid_id, geometry,
+    and population.
+        - from_csv(cls, grid_id: int, size: str, population_key: str, csv: DataFrame): 
+          Class method to create multiple Location instances from a CSV DataFrame and
+          save them to the database.
+
+Modules:
+    - sqlmodel: Provides the base class and utilities for defining SQLAlchemy models.
+    - geoalchemy2: Provides support for spatial data types and operations.
+    - pandas: Used for handling CSV data as DataFrame.
+    - dotenv: Used for loading environment variables.
+    - logging: Configures logging for the application.
+
+Constants:
+    - db_url (str): The database connection URL loaded from environment variables.
+    - engine: The SQLAlchemy engine instance for database operations.
+
+Notes:
+    - The `Grid` class includes a unique constraint on the combination of
+      name, size, and definition.
+    - The `Location` class uses the GeoAlchemy2 `Geometry` type for spatial data.
+    - Logging is configured to suppress detailed SQLAlchemy engine logs by default.
+"""
+import logging
 import os
 
+from typing import Optional, Any
 from sqlmodel import Field, SQLModel, UniqueConstraint, Session, create_engine
 from sqlalchemy import Column
 from geoalchemy2 import Geometry
-from typing import Optional, Any
-from app.models import GridDTO, FullGridDTO
 from dotenv import load_dotenv
 from pandas import DataFrame
-import logging
+
+from app.models import GridDTO
 
 logging.basicConfig()
 logging.getLogger('sqlalchemy.engine').setLevel(logging.WARN)
 
-db_url = os.environ['DBURL']
+load_dotenv()
+db_url = os.getenv('DBURL')
 
 engine = create_engine(db_url, echo=False)
 
