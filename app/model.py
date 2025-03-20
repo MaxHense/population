@@ -42,7 +42,7 @@ class Grid(SQLModel, table=True):
 class Location(SQLModel, table=True):
     id: Optional[int] = Field(default=None, primary_key=True)
     grid_id: int = Field(default=None, foreign_key="grid.id")
-    geom: Any = Field(sa_column=Column(Geometry("POINT", srid=3035)))
+    geom: Any = Field(sa_column=Column(Geometry("POINT", srid=3035), nullable=False))
     population: int
 
     @classmethod
