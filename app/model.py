@@ -33,8 +33,8 @@ import logging
 import os
 
 from typing import Optional, Any
-from sqlmodel import Field, SQLModel, UniqueConstraint, Session, create_engine
-from sqlalchemy import Column
+from sqlmodel import Field, SQLModel, UniqueConstraint, Session, create_engine, select
+from sqlalchemy import Column, func
 from geoalchemy2 import Geometry
 from dotenv import load_dotenv
 from pandas import DataFrame
@@ -72,6 +72,11 @@ class Grid(SQLModel, table=True):
             session.refresh(grid)
             return grid
 
+    @classmethod
+    def get_by_id(cls, grid_id: int):
+        with Session(engine) as session:
+            return session.get(cls, grid_id)
+
 class Location(SQLModel, table=True):
     id: Optional[int] = Field(default=None, primary_key=True)
     grid_id: int = Field(default=None, foreign_key="grid.id")
@@ -93,3 +98,16 @@ class Location(SQLModel, table=True):
         with Session(engine) as session:
             session.bulk_save_objects(locations)
             session.commit()
+
+    @classmethod
+    def get_by_polygon(cls, grid_id: int, polygon: str):
+        with Session(engine) as session:
+            statement = select(func.sum(cls.population)).where(cls.grid_id == grid_id).where(
+                func.ST_Contains(
+                    func.ST_SetSRID(
+                        func.ST_GeomFromText(polygon), 3035
+                    ),
+                    cls.geom
+                )
+            )
+            return session.exec(statement).first()

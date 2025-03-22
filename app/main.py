@@ -14,6 +14,7 @@ Modules and Libraries:
 - app.model: Contains core application models.
 - app.logger: Provides logging functionality.
 Endpoints:
+- GET /: Accepts a grid ID and a polygon definition, retrieves the population
 - POST /upload/: Accepts a grid definition, a CSV file, and a population key,
     processes the data, and returns the processed grid information.
 TODO:
@@ -27,7 +28,7 @@ from fastapi import FastAPI, File, Form, UploadFile, HTTPException
 
 import pandas as pd
 
-from app.models import GridDTO, FullGridDTO
+from app.models import GridDTO, FullGridDTO, PolygonDTO
 from app.model import Grid, Location
 from app.logger import logger
 
@@ -43,12 +44,24 @@ async def lifespan(my_app: FastAPI):
 
 app = FastAPI(lifespan=lifespan)
 
+@app.get("/")
+async def get_polygon(polygon: PolygonDTO):
+    '''Takes a polygon DTO and returns the population within the polygon'''
+    grid = Grid.get_by_id(polygon.grid_id)
+    if not grid:
+        raise HTTPException(status_code=404, detail="Grid not found")
+    poulation = Location.get_by_polygon(grid.id, polygon.polygon)
+    print(poulation)
+    return {"Bevölkerung": poulation}
+
 @app.post("/upload/")
 async def upload_file(
     grid: str = Form(...),
     file: UploadFile = File(...),
     population_key: str = Form(...),
 ):
+    '''Takes a grid definition, a CSV file, and a population key,
+        processes the data, and returns the processed grid information'''
     try:
         grid_data = json.loads(grid)
         grid_model = GridDTO(**grid_data)
