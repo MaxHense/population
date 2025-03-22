@@ -28,3 +28,7 @@ class FullGridDTO(GridDTO):
             size=model.size,
             definition=model.definition,
         )
+
+class PolygonDTO(BaseModel):
+    grid_id: int
+    polygon: str
