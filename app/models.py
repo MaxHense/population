@@ -31,4 +31,5 @@ class FullGridDTO(GridDTO):
 
 class PolygonDTO(BaseModel):
     grid_id: int
+    polygon_type: int
     polygon: str

@@ -100,12 +100,15 @@ class Location(SQLModel, table=True):
             session.commit()
 
     @classmethod
-    def get_by_polygon(cls, grid_id: int, polygon: str):
+    def get_by_polygon(cls, grid_id: int, polygon: str, polygon_type: int):
         with Session(engine) as session:
             statement = select(func.sum(cls.population)).where(cls.grid_id == grid_id).where(
                 func.ST_Contains(
-                    func.ST_SetSRID(
-                        func.ST_GeomFromText(polygon), 3035
+                    func.ST_Transform(
+                        func.ST_SetSRID(
+                            func.ST_GeomFromText(polygon), polygon_type
+                        ),
+                        3035
                     ),
                     cls.geom
                 )

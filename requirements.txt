@@ -12,3 +12,5 @@ pylint
 python-dotenv
 GeoAlchemy2
 pyproj
+testcontainers
+pytest

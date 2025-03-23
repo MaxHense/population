@@ -52,7 +52,7 @@ async def get_polygon(polygon: PolygonDTO):
     grid = Grid.get_by_id(polygon.grid_id)
     if not grid:
         raise HTTPException(status_code=404, detail="Grid not found")
-    poulation = Location.get_by_polygon(grid.id, polygon.polygon)
+    poulation = Location.get_by_polygon(grid.id, polygon.polygon, polygon.polygon_type)
     print(poulation)
     return {"Bevölkerung": poulation}
 
