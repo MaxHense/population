@@ -40,7 +40,8 @@ async def lifespan(my_app: FastAPI):
         subprocess.check_call(["alembic", "upgrade", "head"])
         logger.info("Migrations run successfully")
     except subprocess.CalledProcessError as exc:
-        logger.error("Failed to run migrations")
+        logger.error("Failed to run migrations, because of %s", exc, exc_info=True)
+        raise RuntimeError("Database migration failed. Shutting down server.")
     yield
 
 app = FastAPI(lifespan=lifespan)
