@@ -46,6 +46,10 @@ async def lifespan(my_app: FastAPI):
 
 app = FastAPI(lifespan=lifespan)
 
+@app.get("/test")
+async def test():
+    return {"message": "Hello World"}
+
 @app.get("/")
 async def get_polygon(polygon: PolygonDTO):
     '''Takes a polygon DTO and returns the population within the polygon'''
