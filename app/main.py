@@ -17,14 +17,15 @@ Endpoints:
 - GET /: Accepts a grid ID and a polygon definition, retrieves the population
 - POST /upload/: Accepts a grid definition, a CSV file, and a population key,
     processes the data, and returns the processed grid information.
-TODO:
-- Implement Alembic for database migrations.
 """
 import json
+import subprocess
 
 from io import StringIO
 from contextlib import asynccontextmanager
 from fastapi import FastAPI, File, Form, UploadFile, HTTPException
+from alembic.config import Config
+from alembic import command
 
 import pandas as pd
 
@@ -33,13 +34,13 @@ from app.model import Grid, Location
 from app.logger import logger
 
 
-#TODO: Implement alembic for database migrations
-def db_init():
-    logger.info("Hallo, Startup")
-
 @asynccontextmanager
 async def lifespan(my_app: FastAPI):
-    db_init()
+    try:
+        subprocess.check_call(["alembic", "upgrade", "head"])
+        logger.info("Migrations run successfully")
+    except subprocess.CalledProcessError as exc:
+        logger.error("Failed to run migrations")
     yield
 
 app = FastAPI(lifespan=lifespan)
