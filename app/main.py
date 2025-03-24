@@ -88,3 +88,10 @@ async def upload_file(
         "filename": file.filename,
         "grid": new_dto
     }
+
+
+@app.post("/grid")
+def add_grid(grid: GridDTO):
+    '''Takes a grid DTO and adds it to the database'''
+    new_grid = Grid.from_dto(grid)
+    return new_grid

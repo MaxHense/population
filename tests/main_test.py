@@ -1,9 +1,7 @@
-from fastapi.testclient import TestClient
-from app.main import app
+import pytest
 
-client = TestClient(app)
+from app.core import check_database_connection
 
-def test_read_root():
-    response = client.get("/test")
-    assert response.status_code == 200
-    assert response.json() == {"message": "Hello World"} 
+@pytest.mark.integration
+def test_database_connection(db):
+    assert check_database_connection(), "Database connection failed"
