@@ -22,8 +22,10 @@ import json
 import subprocess
 
 from io import StringIO
+from typing import Callable
 from contextlib import asynccontextmanager
-from fastapi import FastAPI, File, Form, UploadFile, HTTPException
+from fastapi import FastAPI, File, Form, UploadFile, HTTPException, Request, Response
+from fastapi.routing import APIRoute
 from alembic.config import Config
 from alembic import command
 
@@ -31,8 +33,20 @@ import pandas as pd
 
 from app.models import GridDTO, FullGridDTO, PolygonDTO
 from app.model import Grid, Location
-from app.logger import logger
+from app.logging import logger
 
+class log_request_repsonse(APIRoute):
+    def get_route_handler(self) -> Callable:
+        original_route_handler = super().get_route_handler()
+
+        async def custom_route_handler(request: Request) -> Response:
+            req = await request.body()
+            logger.info(req)
+            response: Response = await original_route_handler(request)
+            logger.info(response.body)
+            return response
+
+        return custom_route_handler
 
 @asynccontextmanager
 async def lifespan(my_app: FastAPI):
@@ -45,6 +59,7 @@ async def lifespan(my_app: FastAPI):
     yield
 
 app = FastAPI(lifespan=lifespan)
+app.router.route_class = log_request_repsonse
 
 @app.get("/test")
 async def test():
