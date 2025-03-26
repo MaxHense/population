@@ -29,7 +29,6 @@ Notes:
     - The `Location` class uses the GeoAlchemy2 `Geometry` type for spatial data.
     - Logging is configured to suppress detailed SQLAlchemy engine logs by default.
 """
-import logging
 import os
 
 from typing import Optional, Any
@@ -40,9 +39,6 @@ from dotenv import load_dotenv
 from pandas import DataFrame
 
 from app.models import GridDTO
-
-logging.basicConfig()
-logging.getLogger('sqlalchemy.engine').setLevel(logging.WARN)
 
 load_dotenv()
 db_url = os.getenv('DBURL')
