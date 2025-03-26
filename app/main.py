@@ -33,7 +33,7 @@ import pandas as pd
 
 from app.models import GridDTO, FullGridDTO, PolygonDTO
 from app.model import Grid, Location
-from app.logging import logger
+from app.log import logger
 
 class log_request_repsonse(APIRoute):
     def get_route_handler(self) -> Callable:
@@ -55,7 +55,7 @@ async def lifespan(my_app: FastAPI):
         logger.info("Migrations run successfully")
     except subprocess.CalledProcessError as exc:
         logger.error("Failed to run migrations, because of %s", exc, exc_info=True)
-        raise RuntimeError("Database migration failed. Shutting down server.")
+        raise RuntimeError("Database migration failed. Shutting down server.") from exc
     yield
 
 app = FastAPI(lifespan=lifespan)
@@ -103,3 +103,10 @@ async def upload_file(
         "filename": file.filename,
         "grid": new_dto
     }
+
+
+@app.post("/grid")
+def add_grid(grid: GridDTO):
+    '''Takes a grid DTO and adds it to the database'''
+    new_grid = Grid.from_dto(grid)
+    return new_grid
