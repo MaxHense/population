@@ -1,0 +1,22 @@
+meta {
+  name: upload
+  type: http
+  seq: 1
+}
+
+post {
+  url: http://localhost:8000/upload/
+  body: multipartForm
+  auth: inherit
+}
+
+headers {
+  accept: application/json
+  Content-Type: multipart/form-data
+}
+
+body:multipart-form {
+  grid: "{"name": "Zensus Deutschland 1km", "size": "1km", "definition": "CRS3505"}"
+  file: @file(/home/highjan/Zensus2022_Bevoelkerungszahl_1km-Gitter.csv)
+  population_key: Einwohner
+}
