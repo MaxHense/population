@@ -80,6 +80,9 @@ async def upload_file(
     grid: str = Form(...),
     file: UploadFile = File(...),
     population_key: str = Form(...),
+    delimiter: str = Form(";"),
+    decode: str = Form("utf-8"),
+    x_value: str = Form("")
 ):
     '''Takes a grid definition, a CSV file, and a population key,
         processes the data, and returns the processed grid information'''
@@ -94,8 +97,8 @@ async def upload_file(
     new_dto = FullGridDTO.from_model(new_grid)
 
     contents = await file.read()
-    file_content = contents.decode("utf-8")
-    df = pd.read_csv(StringIO(file_content), delimiter=";")
+    file_content = contents.decode(decode)
+    df = pd.read_csv(StringIO(file_content), delimiter=delimiter)
 
     Location.from_csv(new_grid.id, new_grid.size, population_key,  df)
 
