@@ -15,7 +15,7 @@ from pydantic import BaseModel
 class GridDTO(BaseModel):
     name: str
     size: str
-    definition: str
+    srid: int
 
 class FullGridDTO(GridDTO):
     id: int
@@ -26,10 +26,10 @@ class FullGridDTO(GridDTO):
             id=model.id,
             name=model.name,
             size=model.size,
-            definition=model.definition,
+            srid=model.srid,
         )
 
 class PolygonDTO(BaseModel):
     grid_id: int
-    polygon_type: int
+    polygon_srid: int
     polygon: str

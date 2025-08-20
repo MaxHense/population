@@ -71,7 +71,7 @@ async def get_polygon(polygon: PolygonDTO):
     grid = Grid.get_by_id(polygon.grid_id)
     if not grid:
         raise HTTPException(status_code=404, detail="Grid not found")
-    poulation = Location.get_by_polygon(grid.id, polygon.polygon, polygon.polygon_type)
+    poulation = Location.get_by_polygon(grid, polygon.polygon, polygon.polygon_srid)
     print(poulation)
     return {"Bevölkerung": poulation}
 
@@ -100,7 +100,7 @@ async def upload_file(
     file_content = contents.decode(decode)
     df = pd.read_csv(StringIO(file_content), delimiter=delimiter)
 
-    Location.from_csv(new_grid.id, new_grid.size, population_key,  df)
+    Location.from_csv(new_grid, population_key,  df)
 
     return {
         "filename": file.filename,
