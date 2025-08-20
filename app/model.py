@@ -2,7 +2,7 @@
 This module defines the database models and their associated methods for the population application.
 
 Classes:
-    Grid(SQLModel): Represents a grid entity with attributes such as name, size, and definition.
+    Grid(SQLModel): Represents a grid entity with attributes such as name, size, and srid.
         - from_dto(cls, dto: GridDTO): Class method to create a Grid instance from a GridDTO
           object and save it to the database.
 
@@ -25,7 +25,7 @@ Constants:
 
 Notes:
     - The `Grid` class includes a unique constraint on the combination of
-      name, size, and definition.
+      name, size, and srid.
     - The `Location` class uses the GeoAlchemy2 `Geometry` type for spatial data.
     - Logging is configured to suppress detailed SQLAlchemy engine logs by default.
 """
@@ -47,12 +47,12 @@ engine = create_engine(db_url, echo=False)
 
 class Grid(SQLModel, table=True):
     __table_args__ = (
-        UniqueConstraint("name", "size", "definition", name="unique_grid"),
+        UniqueConstraint("name", "size", "srid", name="unique_grid"),
     )
     id: Optional[int] = Field(default=None, primary_key=True)
     name: str
     size: str
-    definition: str
+    srid: int
 
     #TODO: Integrity Error catch
     @classmethod
@@ -60,7 +60,7 @@ class Grid(SQLModel, table=True):
         grid = cls(
             name=dto.name,
             size=dto.size,
-            definition=dto.definition
+            srid=dto.srid
         )
         with Session(engine) as session:
             session.add(grid)
@@ -76,17 +76,17 @@ class Grid(SQLModel, table=True):
 class Location(SQLModel, table=True):
     id: Optional[int] = Field(default=None, primary_key=True)
     grid_id: int = Field(default=None, foreign_key="grid.id")
-    geom: Any = Field(sa_column=Column(Geometry("POINT", srid=3035), nullable=False))
+    geom: Any = Field(sa_column=Column(Geometry("POINT"), nullable=False))
     population: int
 
     @classmethod
-    def from_csv(cls, grid_id: int, size: str, population_key: str, csv: DataFrame):
-        get_x = "x_mp_" + size
-        get_y = "y_mp_" + size
+    def from_csv(cls, grid: Grid, population_key: str, csv: DataFrame):
+        get_x = "x_mp_" + grid.size
+        get_y = "y_mp_" + grid.size
         locations = [
             cls(
-                grid_id=grid_id,
-                geom=f"POINT({row[get_x]} {row[get_y]})",
+                grid_id=grid.id,
+                geom = f"SRID={grid.srid};POINT({row[get_x]} {row[get_y]})",
                 population=row[population_key]
             )
             for _, row in csv.iterrows()
@@ -96,15 +96,15 @@ class Location(SQLModel, table=True):
             session.commit()
 
     @classmethod
-    def get_by_polygon(cls, grid_id: int, polygon: str, polygon_type: int):
+    def get_by_polygon(cls, grid: Grid, polygon: str, polygon_srid: int):
         with Session(engine) as session:
-            statement = select(func.sum(cls.population)).where(cls.grid_id == grid_id).where(
+            statement = select(func.sum(cls.population)).where(cls.grid_id == grid.id).where(
                 func.ST_Contains(
                     func.ST_Transform(
                         func.ST_SetSRID(
-                            func.ST_GeomFromText(polygon), polygon_type
+                            func.ST_GeomFromText(polygon), polygon_srid
                         ),
-                        3035
+                        grid.srid
                     ),
                     cls.geom
                 )
