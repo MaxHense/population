@@ -28,6 +28,10 @@ jobs:
         python -m pip install --upgrade pip
         pip install flake8 pytest
         if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
+    - name: Check paths
+      run: |
+        ls -la
+        pwd
     - name: Lint with pylint
       run: |
         pylint --init-hook 'import sys; sys.path.insert(0, ".")' $(git ls-files 'app/*.py') --fail-under=7.0
