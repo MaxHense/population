@@ -32,18 +32,14 @@ Notes:
 import os
 
 from typing import Optional, Any
-from sqlmodel import Field, SQLModel, UniqueConstraint, Session, create_engine, select
+from sqlmodel import Field, SQLModel, UniqueConstraint, select
 from sqlalchemy import Column, func
 from geoalchemy2 import Geometry
 from dotenv import load_dotenv
 from pandas import DataFrame
 
 from app.models import GridDTO
-
-load_dotenv()
-db_url = os.getenv('DBURL')
-
-engine = create_engine(db_url, echo=False)
+from app.db import get_engine, get_session
 
 class Grid(SQLModel, table=True):
     __table_args__ = (
@@ -62,7 +58,7 @@ class Grid(SQLModel, table=True):
             size=dto.size,
             srid=dto.srid
         )
-        with Session(engine) as session:
+        with get_session() as session:
             session.add(grid)
             session.commit()
             session.refresh(grid)
@@ -70,7 +66,7 @@ class Grid(SQLModel, table=True):
 
     @classmethod
     def get_by_id(cls, grid_id: int):
-        with Session(engine) as session:
+        with get_session() as session:
             return session.get(cls, grid_id)
 
 class Location(SQLModel, table=True):
@@ -91,13 +87,13 @@ class Location(SQLModel, table=True):
             )
             for _, row in csv.iterrows()
         ]
-        with Session(engine) as session:
+        with get_session() as session:
             session.bulk_save_objects(locations)
             session.commit()
 
     @classmethod
     def get_by_polygon(cls, grid: Grid, polygon: str, polygon_srid: int):
-        with Session(engine) as session:
+        with get_session() as session:
             statement = select(func.sum(cls.population)).where(cls.grid_id == grid.id).where(
                 func.ST_Contains(
                     func.ST_Transform(
