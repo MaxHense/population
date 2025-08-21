@@ -3,6 +3,7 @@ import unittest
 
 from sqlmodel import SQLModel, create_engine
 from sqlalchemy.orm import scoped_session, sessionmaker
+from sqlalchemy import text
 from testcontainers.postgres import PostgresContainer
 from fastapi.testclient import TestClient
 from app.main import app
@@ -34,7 +35,7 @@ class TestGridAPI(unittest.TestCase):
     @classmethod
     def tearDownClass(cls):
         cls.postgis.stop()
-
+        
     def test_get_all_grids(self):
         #Given
         endpoint = "/grid"

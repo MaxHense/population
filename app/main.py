@@ -35,6 +35,7 @@ from app.models import GridDTO, FullGridDTO, PolygonDTO
 from app.model import Grid, Location
 from app.log import logger
 from app.services.grid import GridService
+from app.services.location import LocationService
 
 class log_request_repsonse(APIRoute):
     def get_route_handler(self) -> Callable:
@@ -68,7 +69,7 @@ async def get_polygon(polygon: PolygonDTO):
     grid = Grid.get_by_id(polygon.grid_id)
     if not grid:
         raise HTTPException(status_code=404, detail="Grid not found")
-    poulation = Location.get_by_polygon(grid, polygon.polygon, polygon.polygon_srid)
+    poulation = LocationService.get_population_by_polygon(grid, polygon.polygon, polygon.polygon_srid)
     print(poulation)
     return {"Bevölkerung": poulation}
 
@@ -89,7 +90,7 @@ async def upload_file(
     except json.JSONDecodeError as exc:
         raise HTTPException(status_code=400, detail="Invalid JSON for 'grid'") from exc
 
-    new_grid = Grid.from_dto(grid_model)
+    new_dto = GridService.set_new_grid(grid_model)
 
     new_dto = FullGridDTO.from_model(new_grid)
 

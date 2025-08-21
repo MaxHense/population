@@ -58,16 +58,7 @@ class Grid(SQLModel, table=True):
             size=dto.size,
             srid=dto.srid
         )
-        with get_session() as session:
-            session.add(grid)
-            session.commit()
-            session.refresh(grid)
-            return grid
-
-    @classmethod
-    def get_by_id(cls, grid_id: int):
-        with get_session() as session:
-            return session.get(cls, grid_id)
+        return grid
 
 class Location(SQLModel, table=True):
     id: Optional[int] = Field(default=None, primary_key=True)
@@ -90,19 +81,3 @@ class Location(SQLModel, table=True):
         with get_session() as session:
             session.bulk_save_objects(locations)
             session.commit()
-
-    @classmethod
-    def get_by_polygon(cls, grid: Grid, polygon: str, polygon_srid: int):
-        with get_session() as session:
-            statement = select(func.sum(cls.population)).where(cls.grid_id == grid.id).where(
-                func.ST_Contains(
-                    func.ST_Transform(
-                        func.ST_SetSRID(
-                            func.ST_GeomFromText(polygon), polygon_srid
-                        ),
-                        grid.srid
-                    ),
-                    cls.geom
-                )
-            )
-            return session.exec(statement).first()
