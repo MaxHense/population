@@ -34,6 +34,7 @@ import pandas as pd
 from app.models import GridDTO, FullGridDTO, PolygonDTO
 from app.model import Grid, Location
 from app.log import logger
+from app.services.grid import GridService
 
 class log_request_repsonse(APIRoute):
     def get_route_handler(self) -> Callable:
@@ -60,10 +61,6 @@ async def lifespan(my_app: FastAPI):
 
 app = FastAPI(lifespan=lifespan)
 app.router.route_class = log_request_repsonse
-
-@app.get("/test")
-async def test():
-    return {"message": "Hello World"}
 
 @app.get("/")
 async def get_polygon(polygon: PolygonDTO):
@@ -107,6 +104,10 @@ async def upload_file(
         "grid": new_dto
     }
 
+@app.get("/grid")
+def get_grid():
+    '''Returns all Grids of database'''
+    return GridService.list_grids()
 
 @app.post("/grid")
 def add_grid(grid: GridDTO):
