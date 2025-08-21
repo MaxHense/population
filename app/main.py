@@ -90,7 +90,7 @@ async def upload_file(
     except json.JSONDecodeError as exc:
         raise HTTPException(status_code=400, detail="Invalid JSON for 'grid'") from exc
 
-    new_dto = GridService.set_new_grid(grid_model)
+    new_grid = GridService.set_new_grid(grid_model)
 
     new_dto = FullGridDTO.from_model(new_grid)
 
