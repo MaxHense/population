@@ -1,4 +1,6 @@
-# app/db.py
+"""
+This class handles database connections
+"""
 import os
 from sqlmodel import SQLModel, create_engine, Session
 
