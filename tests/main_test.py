@@ -20,11 +20,10 @@ def session(request):
     Setup postGIS container
     '''
     postgis = PostgresContainer(
-        "postgis/postgis:latest",
-        "5432",
-        "postgres",
-        "postgres",
-        "population",
+        image="postgis/postgis:latest",
+        username="postgres",
+        password="postgres",
+        dbname="population",
     )
 
     postgis.start()
