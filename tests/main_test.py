@@ -10,6 +10,7 @@ from fastapi.testclient import TestClient
 
 from app.model import *
 from app.main import app
+from app.log import logger
 
 client = TestClient(app)
 
@@ -43,6 +44,7 @@ def session(request):
     return session
     
 def test_read_main(session):
+    logger.info("Testing /test") 
     response = client.get("/test")
     assert response.status_code == 200
     assert response.json() == {"message": "Hello World"}
