@@ -40,3 +40,6 @@ jobs:
     - name: Test docker
       run: |
         docker --version
+    - name: Test Flask Application
+      run: |
+        pytest -v
