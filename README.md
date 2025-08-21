@@ -12,10 +12,10 @@ To run this project you need a running PostGIS Database. Add a environmen file w
 
 ## Usage
 
-Run Fastapi App with uvicorn
+Run Fastapi App with uvicorn, it is necessary that DBURL is set. For that either mak an environment variable or use the following command with an `.env` environment file
 
 ```bash
-uvicorn app.main:app
+uvicorn app.main:app --env-file=./.env
 ```
 
 ## Test
