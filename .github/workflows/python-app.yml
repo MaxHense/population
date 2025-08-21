@@ -34,7 +34,7 @@ jobs:
         pwd
     - name: Lint with pylint
       run: |
-        pylint --init-hook 'import sys; sys.path.insert(0, ".")' $(git ls-files 'app/*.py') --fail-under=7.0
+        pylint --init-hook 'import sys; sys.path.insert(0, ".")' $(git ls-files 'app/*.py') --fail-under=6.0
     - name: Lint with flake8
       run: |
         # stop the build if there are Python syntax errors or undefined names

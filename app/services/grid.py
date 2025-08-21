@@ -1,3 +1,6 @@
+"""
+This class is the service for Grids
+"""
 from app.repositories.grid import GridRepository
 from app.models import GridDTO
 from app.model import Grid

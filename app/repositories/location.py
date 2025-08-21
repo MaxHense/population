@@ -1,3 +1,6 @@
+"""
+This class is the repository for locations
+"""
 from sqlmodel import select
 from sqlalchemy import Column, func
 from app.model import Location, Grid
