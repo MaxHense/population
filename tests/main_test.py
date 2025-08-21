@@ -28,6 +28,8 @@ def session(request):
     )
 
     postgis.start()
+    
+    logger.info("Current Connection URL: " + postgis.get_connection_url())
 
     os.environ["DBURL"] = postgis.get_connection_url()
     
