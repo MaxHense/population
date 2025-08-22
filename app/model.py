@@ -29,19 +29,19 @@ Notes:
     - The `Location` class uses the GeoAlchemy2 `Geometry` type for spatial data.
     - Logging is configured to suppress detailed SQLAlchemy engine logs by default.
 """
-import os
-
 from typing import Optional, Any
-from sqlmodel import Field, SQLModel, UniqueConstraint, select
-from sqlalchemy import Column, func
+from sqlmodel import Field, SQLModel, UniqueConstraint
+from sqlalchemy import Column
 from geoalchemy2 import Geometry
-from dotenv import load_dotenv
 from pandas import DataFrame
 
 from app.models import GridDTO
-from app.db import get_engine, get_session
+from app.db import get_session
 
 class Grid(SQLModel, table=True):
+    """
+    class handles model of Grid
+    """
     __table_args__ = (
         UniqueConstraint("name", "size", "srid", name="unique_grid"),
     )
@@ -50,9 +50,11 @@ class Grid(SQLModel, table=True):
     size: str
     srid: int
 
-    #TODO: Integrity Error catch
     @classmethod
     def from_dto(cls, dto: GridDTO):
+        """
+        transforms GridDTO to Grid
+        """
         grid = cls(
             name=dto.name,
             size=dto.size,
@@ -61,6 +63,9 @@ class Grid(SQLModel, table=True):
         return grid
 
 class Location(SQLModel, table=True):
+    """
+    class handles model of Location
+    """
     id: Optional[int] = Field(default=None, primary_key=True)
     grid_id: int = Field(default=None, foreign_key="grid.id")
     geom: Any = Field(sa_column=Column(Geometry("POINT"), nullable=False))
@@ -68,6 +73,9 @@ class Location(SQLModel, table=True):
 
     @classmethod
     def from_csv(cls, grid: Grid, population_key: str, csv: DataFrame):
+        """
+        builds location from csv entry
+        """
         get_x = "x_mp_" + grid.size
         get_y = "y_mp_" + grid.size
         locations = [

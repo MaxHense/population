@@ -13,15 +13,24 @@ Methods:
 from pydantic import BaseModel
 
 class GridDTO(BaseModel):
+    """
+    transfer objet for Grid
+    """
     name: str
     size: str
     srid: int
 
 class FullGridDTO(GridDTO):
+    """
+    transfer objet for returning a Grid
+    """
     id: int
 
     @classmethod
     def from_model(cls, model):
+        """
+        transforms model grid to transfer object
+        """
         return cls(
             id=model.id,
             name=model.name,
@@ -30,6 +39,9 @@ class FullGridDTO(GridDTO):
         )
 
 class PolygonDTO(BaseModel):
+    """
+    transfer object of an polygon
+    """
     grid_id: int
     polygon_srid: int
     polygon: str

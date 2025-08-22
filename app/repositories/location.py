@@ -1,16 +1,25 @@
 """
-This class is the repository for locations
+module is the repository for location
 """
 from sqlmodel import select
-from sqlalchemy import Column, func
+from sqlalchemy import func
+
 from app.model import Location, Grid
 from app.db import get_session
 
 class LocationRepository:
-    @classmethod
-    def get_population_by_polygon(cls, grid: Grid, polygon: str, polygon_srid: int):
+    """
+    class handles all database requests for locations
+    """
+    @staticmethod
+    def get_population_by_polygon(grid: Grid, polygon: str, polygon_srid: int):
+        """
+        return population of specified polygon
+        """
         with get_session() as session:
-            statement = select(func.sum(Location.population)).where(Location.grid_id == grid.id).where(
+            statement = select(
+                func.sum(Location.population)
+            ).where(Location.grid_id == grid.id).where(
                 func.ST_Contains(
                     func.ST_Transform(
                         func.ST_SetSRID(
@@ -22,9 +31,12 @@ class LocationRepository:
                 )
             )
             return session.exec(statement).first()
-        
-    @classmethod
-    def set_bulk_locations(cls, locations: list()):
+
+    @staticmethod
+    def set_bulk_locations(locations: []):
+        """
+        inserts locations in database in bulks
+        """
         with get_session() as session:
             session.bulk_save_objects(locations)
             session.commit()
