@@ -26,8 +26,6 @@ from typing import Callable
 from contextlib import asynccontextmanager
 from fastapi import FastAPI, File, Form, UploadFile, HTTPException, Request, Response
 from fastapi.routing import APIRoute
-from alembic.config import Config
-from alembic import command
 
 import pandas as pd
 
@@ -37,7 +35,10 @@ from app.log import logger
 from app.services.grid import GridService
 from app.services.location import LocationService
 
-class log_request_repsonse(APIRoute):
+class LogRequestResponse(APIRoute):
+    """
+    Handles that response of app gets logged
+    """
     def get_route_handler(self) -> Callable:
         original_route_handler = super().get_route_handler()
 
@@ -52,16 +53,19 @@ class log_request_repsonse(APIRoute):
 
 @asynccontextmanager
 async def lifespan(my_app: FastAPI):
+    """
+    Checks if alembic has successfully upgraded the database
+    """
     try:
         subprocess.check_call(["alembic", "upgrade", "head"])
-        logger.info("Migrations run successfully")
+        logger.info("Migrations run successfully for app: %s", my_app.title)
     except subprocess.CalledProcessError as exc:
         logger.error("Failed to run migrations, because of %s", exc, exc_info=True)
         raise RuntimeError("Database migration failed. Shutting down server.") from exc
     yield
 
-app = FastAPI(lifespan=lifespan)
-app.router.route_class = log_request_repsonse
+app = FastAPI(title="population counter", lifespan=lifespan)
+app.router.route_class = LogRequestResponse
 
 @app.get("/")
 async def get_polygon(polygon: PolygonDTO):
@@ -69,7 +73,11 @@ async def get_polygon(polygon: PolygonDTO):
     grid = Grid.get_by_id(polygon.grid_id)
     if not grid:
         raise HTTPException(status_code=404, detail="Grid not found")
-    poulation = LocationService.get_population_by_polygon(grid, polygon.polygon, polygon.polygon_srid)
+    poulation = LocationService.get_population_by_polygon(
+        grid,
+        polygon.polygon,
+        polygon.polygon_srid
+    )
     print(poulation)
     return {"Bevölkerung": poulation}
 
@@ -79,8 +87,7 @@ async def upload_file(
     file: UploadFile = File(...),
     population_key: str = Form(...),
     delimiter: str = Form(";"),
-    decode: str = Form("utf-8"),
-    x_value: str = Form("")
+    decode: str = Form("utf-8")
 ):
     '''Takes a grid definition, a CSV file, and a population key,
         processes the data, and returns the processed grid information'''
@@ -88,21 +95,24 @@ async def upload_file(
         grid_data = json.loads(grid)
         grid_model = GridDTO(**grid_data)
     except json.JSONDecodeError as exc:
-        raise HTTPException(status_code=400, detail="Invalid JSON for 'grid'") from exc
+        raise HTTPException(
+            status_code=400,
+            detail="Invalid JSON for 'grid'"
+        ) from exc
 
     new_grid = GridService.set_new_grid(grid_model)
 
-    new_dto = FullGridDTO.from_model(new_grid)
+    new_grid_dto = FullGridDTO.from_model(new_grid)
 
     contents = await file.read()
     file_content = contents.decode(decode)
     df = pd.read_csv(StringIO(file_content), delimiter=delimiter)
 
-    Location.from_csv(new_grid, population_key,  df)
+    Location.from_csv(new_grid_dto, population_key,  df)
 
     return {
         "filename": file.filename,
-        "grid": new_dto
+        "grid": new_grid_dto
     }
 
 @app.get("/grid")
