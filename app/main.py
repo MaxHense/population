@@ -44,9 +44,9 @@ class LogRequestResponse(APIRoute):
 
         async def custom_route_handler(request: Request) -> Response:
             req = await request.body()
-            logger.info(req)
+            logger.info("Request: %s", req)
             response: Response = await original_route_handler(request)
-            logger.info(response.body)
+            logger.info("Response: %s", response.body)
             return response
 
         return custom_route_handler
@@ -70,7 +70,7 @@ app.router.route_class = LogRequestResponse
 @app.get("/")
 async def get_polygon(polygon: PolygonDTO):
     '''Takes a polygon DTO and returns the population within the polygon'''
-    grid = Grid.get_by_id(polygon.grid_id)
+    grid = GridService.get_by_id(polygon.grid_id)
     if not grid:
         raise HTTPException(status_code=404, detail="Grid not found")
     poulation = LocationService.get_population_by_polygon(
