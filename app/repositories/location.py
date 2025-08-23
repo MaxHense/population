@@ -40,3 +40,4 @@ class LocationRepository:
         with get_session() as session:
             session.bulk_save_objects(locations)
             session.commit()
+            return len(locations)

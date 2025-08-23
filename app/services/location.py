@@ -18,18 +18,18 @@ class LocationService:
         return LocationRepository.get_population_by_polygon(grid, polygon, polygon_srid)
 
     @staticmethod
-    def from_csv(grid: Grid, population_key: str, csv: DataFrame):
+    def location_from_csv(grid: Grid, x_column: str, y_column: str, population_key: str, csv: DataFrame):
         """
-        builds locations from specified csv and stores it in database
+        builds location from csv entry
         """
-        get_x = "x_mp_" + grid.size
-        get_y = "y_mp_" + grid.size
         locations = [
             Location(
                 grid_id=grid.id,
-                geom = f"SRID={grid.srid};POINT({row[get_x]} {row[get_y]})",
+                geom = f"SRID={grid.srid};POINT({row[x_column]} {row[y_column]})",
                 population=row[population_key]
             )
             for _, row in csv.iterrows()
         ]
-        LocationRepository.set_bulk_locations(locations)
+        number_of_locations = LocationRepository.set_bulk_locations(locations)
+        
+        return number_of_locations
