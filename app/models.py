@@ -25,18 +25,7 @@ class FullGridDTO(GridDTO):
     transfer objet for returning a Grid
     """
     id: int
-
-    @classmethod
-    def from_model(cls, model):
-        """
-        transforms model grid to transfer object
-        """
-        return cls(
-            id=model.id,
-            name=model.name,
-            size=model.size,
-            srid=model.srid,
-        )
+    number_of_location: int
 
 class PolygonDTO(BaseModel):
     """

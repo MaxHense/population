@@ -35,7 +35,7 @@ from sqlalchemy import Column
 from geoalchemy2 import Geometry
 from pandas import DataFrame
 
-from app.models import GridDTO
+from app.models import GridDTO, FullGridDTO
 from app.db import get_session
 
 class Grid(SQLModel, table=True):
@@ -61,6 +61,16 @@ class Grid(SQLModel, table=True):
             srid=dto.srid
         )
         return grid
+    
+    def to_dto_with_number(self, number_of_location: int) -> FullGridDTO:
+        """Transform into FullGridDTO with an extra field"""
+        return FullGridDTO(
+            id=self.id,
+            name=self.name,
+            size=self.size,
+            srid=self.srid,
+            number_of_location=number_of_location,
+        )
 
 class Location(SQLModel, table=True):
     """
@@ -70,22 +80,3 @@ class Location(SQLModel, table=True):
     grid_id: int = Field(default=None, foreign_key="grid.id")
     geom: Any = Field(sa_column=Column(Geometry("POINT"), nullable=False))
     population: int
-
-    @classmethod
-    def from_csv(cls, grid: Grid, population_key: str, csv: DataFrame):
-        """
-        builds location from csv entry
-        """
-        get_x = "x_mp_" + grid.size
-        get_y = "y_mp_" + grid.size
-        locations = [
-            cls(
-                grid_id=grid.id,
-                geom = f"SRID={grid.srid};POINT({row[get_x]} {row[get_y]})",
-                population=row[population_key]
-            )
-            for _, row in csv.iterrows()
-        ]
-        with get_session() as session:
-            session.bulk_save_objects(locations)
-            session.commit()

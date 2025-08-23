@@ -85,6 +85,8 @@ async def get_polygon(polygon: PolygonDTO):
 async def upload_file(
     grid: str = Form(...),
     file: UploadFile = File(...),
+    x_column: str = Form(),
+    y_column: str = Form(),
     population_key: str = Form(...),
     delimiter: str = Form(";"),
     decode: str = Form("utf-8")
@@ -102,18 +104,13 @@ async def upload_file(
 
     new_grid = GridService.set_new_grid(grid_model)
 
-    new_grid_dto = FullGridDTO.from_model(new_grid)
-
     contents = await file.read()
     file_content = contents.decode(decode)
     df = pd.read_csv(StringIO(file_content), delimiter=delimiter)
 
-    Location.from_csv(new_grid_dto, population_key,  df)
-
-    return {
-        "filename": file.filename,
-        "grid": new_grid_dto
-    }
+    number_of_location = LocationService.location_from_csv(new_grid, x_column, y_column, population_key,  df)
+    
+    return new_grid.to_dto_with_number(number_of_location)
 
 @app.get("/grid")
 def get_grid():
