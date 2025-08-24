@@ -4,7 +4,7 @@ module is the repository for location
 from sqlmodel import select
 from sqlalchemy import func
 
-from app.model.db import Location, Grid
+from app.models.db import Location, Grid
 from app.repositories.db import get_session
 
 

@@ -29,8 +29,8 @@ from fastapi.routing import APIRoute
 
 import pandas as pd
 
-from app.model.dto import GridDTO, PolygonDTO, DataDTO
-from app.model.db import Grid
+from app.models.dto import GridDTO, PolygonDTO, DataDTO
+from app.models.db import Grid
 from app.log import logger
 from app.services.grid import GridService
 from app.services.location import LocationService
@@ -82,7 +82,7 @@ async def get_polygon(polygon: PolygonDTO):
         polygon.polygon_srid
     )
     print(poulation)
-    return {"Bevölkerung": poulation}
+    return {"population": poulation}
 
 
 @app.post("/upload/")
