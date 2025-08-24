@@ -4,7 +4,7 @@ module holds the service for locations
 from pandas import DataFrame
 
 from app.repositories.location import LocationRepository
-from app.model.db import Grid, Location
+from app.models.db import Grid, Location
 
 
 class LocationService:

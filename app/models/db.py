@@ -33,7 +33,7 @@ from sqlmodel import Field, SQLModel, UniqueConstraint
 from sqlalchemy import Column
 from geoalchemy2 import Geometry
 
-from app.model.dto import GridDTO, FullGridDTO
+from app.models.dto import GridDTO, FullGridDTO
 
 
 class Grid(SQLModel, table=True):
