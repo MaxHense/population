@@ -30,9 +30,11 @@ class LocationService:
         builds location from csv entry
         """
         locations = [
-            Location( grid_id=grid.id,
+            Location(
+                grid_id=grid.id,
                 geom=f"SRID={grid.srid};POINT({row[x_column]} {row[y_column]})",
-                population=row[population_key]) for _, row in csv.iterrows()
+                population=row[population_key]
+            ) for _, row in csv.iterrows()
         ]
         number_of_locations = LocationRepository.set_bulk_locations(locations)
 
