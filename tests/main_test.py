@@ -8,16 +8,15 @@ from testcontainers.postgres import PostgresContainer
 from fastapi.testclient import TestClient
 from app.main import app
 from app.log import logger
-from app.models.dto import FullGridDTO
 
 client = TestClient(app)
 
 
 class TestGridAPI(unittest.TestCase):
-    
+
     test_id = None
     test_srid = 3035
-    
+
     @classmethod
     def setUpClass(cls):
         # Setup PostGIS container
@@ -56,7 +55,18 @@ class TestGridAPI(unittest.TestCase):
         # Given
         file_path = os.path.join("tests", "resources", "Test_Zensus.csv")
         test_name = "Test Data Zensus 1km"
-        grid_payload = {"name": test_name, "size": "1km", "srid": self.test_srid}
+        grid_payload = {
+            "name": test_name,
+            "size": "1km",
+            "srid": self.test_srid
+        }
+        data_definition_payload = {
+            "population_key": "Einwohner",
+            "x_column": "x_mp_1km",
+            "y_column": "y_mp_1km",
+            "delimiter": ";",
+            "decode": "utf-8"
+        }
 
         # When
         with open(file_path, "rb") as f:
@@ -65,7 +75,7 @@ class TestGridAPI(unittest.TestCase):
                 files={"file": ("test.csv", f, "text/csv")},
                 data={
                     "grid": json.dumps(grid_payload),
-                    "data_definition": '{"population_key": "Einwohner", "x_column": "x_mp_1km", "y_column": "y_mp_1km", "delimiter": ";", "decode": "utf-8"}'
+                    "data_definition": json.dumps(data_definition_payload)
                 },
             )
 
@@ -74,7 +84,7 @@ class TestGridAPI(unittest.TestCase):
         self.test_id = response.json()["id"]
         self.assertTrue(self.test_id == 1)
         self.assertTrue(response.json()["name"] == test_name)
-    
+
         # Given
         endpoint = "/grid"
         logger.info(f"test api endpoint {endpoint} to fetch all grids")
@@ -86,8 +96,13 @@ class TestGridAPI(unittest.TestCase):
 
         # Population
         # Given
-        polygon_around_test_data = "POLYGON ((3989527 3589065, 4676576 3588708, 4715425 2693702, 3961852 2673737, 3989527 3589065))"
-        population_payload = {"grid_id": self.test_id,"polygon_srid": self.test_srid,"polygon": polygon_around_test_data}
+        polygon_around_test_data = ("POLYGON ((3989527 3589065, 4676576 3588708, "
+                                    "4715425 2693702, 3961852 2673737, 3989527 3589065))")
+        population_payload = {
+            "grid_id": self.test_id,
+            "polygon_srid": self.test_srid,
+            "polygon": polygon_around_test_data
+        }
         endpoint = "/"
         # When
         response = client.request("GET", endpoint, json=population_payload)
