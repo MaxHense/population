@@ -35,6 +35,7 @@ from app.log import logger
 from app.services.grid import GridService
 from app.services.location import LocationService
 
+
 class LogRequestResponse(APIRoute):
     """
     Handles that response of app gets logged
@@ -50,6 +51,7 @@ class LogRequestResponse(APIRoute):
             return response
 
         return custom_route_handler
+
 
 @asynccontextmanager
 async def lifespan(my_app: FastAPI):
@@ -67,6 +69,7 @@ async def lifespan(my_app: FastAPI):
 app = FastAPI(title="population counter", lifespan=lifespan)
 app.router.route_class = LogRequestResponse
 
+
 @app.get("/")
 async def get_polygon(polygon: PolygonDTO):
     '''Takes a polygon DTO and returns the population within the polygon'''
@@ -80,6 +83,7 @@ async def get_polygon(polygon: PolygonDTO):
     )
     print(poulation)
     return {"Bevölkerung": poulation}
+
 
 @app.post("/upload/")
 async def upload_file(
@@ -123,10 +127,12 @@ async def upload_file(
 
     return new_grid.to_dto_with_number(number_of_location)
 
+
 @app.get("/grid")
 def get_grid():
     '''Returns all Grids of database'''
     return GridService.list_grids()
+
 
 @app.post("/grid")
 def add_grid(grid: GridDTO):

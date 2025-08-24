@@ -7,6 +7,7 @@ from sqlalchemy import func
 from app.model.db import Location, Grid
 from app.repositories.db import get_session
 
+
 class LocationRepository:
     """
     class handles all database requests for locations

@@ -6,6 +6,7 @@ from pandas import DataFrame
 from app.repositories.location import LocationRepository
 from app.model.db import Grid, Location
 
+
 class LocationService:
     """
     this class is the service for locations
@@ -29,12 +30,9 @@ class LocationService:
         builds location from csv entry
         """
         locations = [
-            Location(
-                grid_id=grid.id,
-                geom = f"SRID={grid.srid};POINT({row[x_column]} {row[y_column]})",
-                population=row[population_key]
-            )
-            for _, row in csv.iterrows()
+            Location( grid_id=grid.id,
+                geom=f"SRID={grid.srid};POINT({row[x_column]} {row[y_column]})",
+                population=row[population_key]) for _, row in csv.iterrows()
         ]
         number_of_locations = LocationRepository.set_bulk_locations(locations)
 
