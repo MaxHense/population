@@ -2,8 +2,8 @@
 module holds class of GridService, which handles all grid related business logic
 """
 from app.repositories.grid import GridRepository
-from app.models import GridDTO
-from app.model import Grid
+from app.model.dto import GridDTO
+from app.model.db import Grid
 
 class GridService:
     """

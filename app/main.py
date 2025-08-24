@@ -29,8 +29,8 @@ from fastapi.routing import APIRoute
 
 import pandas as pd
 
-from app.models import GridDTO, PolygonDTO, DataDTO
-from app.model import Grid
+from app.model.dto import GridDTO, PolygonDTO, DataDTO
+from app.model.db import Grid
 from app.log import logger
 from app.services.grid import GridService
 from app.services.location import LocationService
