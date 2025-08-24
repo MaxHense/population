@@ -5,6 +5,7 @@ from app.repositories.grid import GridRepository
 from app.model.dto import GridDTO
 from app.model.db import Grid
 
+
 class GridService:
     """
     this class is the service for grids

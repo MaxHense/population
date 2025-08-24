@@ -6,6 +6,7 @@ from sqlmodel import select
 from app.model.db import Grid
 from app.repositories.db import get_session
 
+
 class GridRepository:
     """
     class handles all database requests for grids

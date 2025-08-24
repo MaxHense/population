@@ -8,7 +8,7 @@ Classes:
 
     Location(SQLModel): Represents a location entity with attributes such as grid_id, geometry,
     and population.
-        - from_csv(cls, grid_id: int, size: str, population_key: str, csv: DataFrame): 
+        - from_csv(cls, grid_id: int, size: str, population_key: str, csv: DataFrame):
           Class method to create multiple Location instances from a CSV DataFrame and
           save them to the database.
 
@@ -34,6 +34,7 @@ from sqlalchemy import Column
 from geoalchemy2 import Geometry
 
 from app.model.dto import GridDTO, FullGridDTO
+
 
 class Grid(SQLModel, table=True):
     """
@@ -68,6 +69,7 @@ class Grid(SQLModel, table=True):
             srid=self.srid,
             number_of_location=number_of_location,
         )
+
 
 class Location(SQLModel, table=True):
     """

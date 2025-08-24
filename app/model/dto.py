@@ -12,6 +12,7 @@ Methods:
 """
 from pydantic import BaseModel
 
+
 class GridDTO(BaseModel):
     """
     transfer objet for Grid
@@ -20,12 +21,14 @@ class GridDTO(BaseModel):
     size: str
     srid: int
 
+
 class FullGridDTO(GridDTO):
     """
     transfer objet for returning a Grid
     """
     id: int
     number_of_location: int
+
 
 class DataDTO(BaseModel):
     """
@@ -36,6 +39,7 @@ class DataDTO(BaseModel):
     population_key: str
     delimiter: str
     decode: str
+
 
 class PolygonDTO(BaseModel):
     """
