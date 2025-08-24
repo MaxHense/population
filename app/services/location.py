@@ -18,7 +18,13 @@ class LocationService:
         return LocationRepository.get_population_by_polygon(grid, polygon, polygon_srid)
 
     @staticmethod
-    def location_from_csv(grid: Grid, x_column: str, y_column: str, population_key: str, csv: DataFrame):
+    def location_from_csv(
+        grid: Grid,
+        x_column: str,
+        y_column: str,
+        population_key: str,
+        csv: DataFrame
+    ):
         """
         builds location from csv entry
         """
@@ -31,5 +37,5 @@ class LocationService:
             for _, row in csv.iterrows()
         ]
         number_of_locations = LocationRepository.set_bulk_locations(locations)
-        
+
         return number_of_locations

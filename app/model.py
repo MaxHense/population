@@ -15,7 +15,6 @@ Classes:
 Modules:
     - sqlmodel: Provides the base class and utilities for defining SQLAlchemy models.
     - geoalchemy2: Provides support for spatial data types and operations.
-    - pandas: Used for handling CSV data as DataFrame.
     - dotenv: Used for loading environment variables.
     - logging: Configures logging for the application.
 
@@ -33,10 +32,8 @@ from typing import Optional, Any
 from sqlmodel import Field, SQLModel, UniqueConstraint
 from sqlalchemy import Column
 from geoalchemy2 import Geometry
-from pandas import DataFrame
 
 from app.models import GridDTO, FullGridDTO
-from app.db import get_session
 
 class Grid(SQLModel, table=True):
     """
@@ -61,7 +58,7 @@ class Grid(SQLModel, table=True):
             srid=dto.srid
         )
         return grid
-    
+
     def to_dto_with_number(self, number_of_location: int) -> FullGridDTO:
         """Transform into FullGridDTO with an extra field"""
         return FullGridDTO(

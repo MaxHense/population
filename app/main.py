@@ -29,8 +29,8 @@ from fastapi.routing import APIRoute
 
 import pandas as pd
 
-from app.models import GridDTO, FullGridDTO, PolygonDTO
-from app.model import Grid, Location
+from app.models import GridDTO, PolygonDTO, DataDTO
+from app.model import Grid
 from app.log import logger
 from app.services.grid import GridService
 from app.services.location import LocationService
@@ -85,11 +85,7 @@ async def get_polygon(polygon: PolygonDTO):
 async def upload_file(
     grid: str = Form(...),
     file: UploadFile = File(...),
-    x_column: str = Form(),
-    y_column: str = Form(),
-    population_key: str = Form(...),
-    delimiter: str = Form(";"),
-    decode: str = Form("utf-8")
+    data_definition: str = Form()
 ):
     '''Takes a grid definition, a CSV file, and a population key,
         processes the data, and returns the processed grid information'''
@@ -102,14 +98,29 @@ async def upload_file(
             detail="Invalid JSON for 'grid'"
         ) from exc
 
+    try:
+        data_definition = json.loads(data_definition)
+        data_model = DataDTO(**data_definition)
+    except json.JSONDecodeError as exc:
+        raise HTTPException(
+            status_code=400,
+            detail="Invalid JSON for 'grid'"
+        ) from exc
+
     new_grid = GridService.set_new_grid(grid_model)
 
     contents = await file.read()
-    file_content = contents.decode(decode)
-    df = pd.read_csv(StringIO(file_content), delimiter=delimiter)
+    file_content = contents.decode(data_model.decode)
+    df = pd.read_csv(StringIO(file_content), delimiter=data_model.delimiter)
 
-    number_of_location = LocationService.location_from_csv(new_grid, x_column, y_column, population_key,  df)
-    
+    number_of_location = LocationService.location_from_csv(
+        new_grid,
+        data_model.x_column,
+        data_model.y_column,
+        data_model.population_key,
+        df
+    )
+
     return new_grid.to_dto_with_number(number_of_location)
 
 @app.get("/grid")

@@ -27,6 +27,16 @@ class FullGridDTO(GridDTO):
     id: int
     number_of_location: int
 
+class DataDTO(BaseModel):
+    """
+    dto to specify csv columns
+    """
+    x_column: str
+    y_column: str
+    population_key: str
+    delimiter: str
+    decode: str
+
 class PolygonDTO(BaseModel):
     """
     transfer object of an polygon
