@@ -3,8 +3,8 @@ module is the repository for grid
 """
 from sqlmodel import select
 
-from app.model import Grid
-from app.db import get_session
+from app.model.db import Grid
+from app.repositories.db import get_session
 
 class GridRepository:
     """
