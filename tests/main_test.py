@@ -87,7 +87,7 @@ class TestGridAPI(unittest.TestCase):
         # Population
         # Given
         polygon_around_test_data = "POLYGON ((3989527 3589065, 4676576 3588708, 4715425 2693702, 3961852 2673737, 3989527 3589065))"
-        population_payload = {"grid_id": self.test_id,"polygon_srid": self.test_srid,"polygon": polygon_germany}
+        population_payload = {"grid_id": self.test_id,"polygon_srid": self.test_srid,"polygon": polygon_around_test_data}
         endpoint = "/"
         # When
         response = client.request("GET", endpoint, json=population_payload)
