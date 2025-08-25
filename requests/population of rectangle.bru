@@ -1,0 +1,19 @@
+meta {
+  name: population of rectangle
+  type: http
+  seq: 5
+}
+
+get {
+  url: http://localhost:8000
+  body: json
+  auth: inherit
+}
+
+headers {
+  Content-Type: application/json
+}
+
+body:json {
+  {"grid_id":8,"polygon_srid":3035,"polygon":"POLYGON ((3989527 3589065, 4676576 3588708, 4715425 2693702, 3961852 2673737, 3989527 3589065))"}
+}
