@@ -94,7 +94,7 @@ class TestGridAPI(unittest.TestCase):
         self.assertTrue(response.status_code == 200)
         self.assertTrue(len(response.json()) == 1)
 
-        # Population
+        # Population of full test data
         # Given
         polygon_around_test_data = ("POLYGON ((3989527 3589065, 4676576 3588708, "
                                     "4715425 2693702, 3961852 2673737, 3989527 3589065))")
@@ -109,3 +109,19 @@ class TestGridAPI(unittest.TestCase):
         # Then
         self.assertTrue(response.status_code == 200)
         self.assertTrue(response.json()["population"] == 21008)
+
+        # Population of first entry of test data
+        # Given
+        polygon_around_test_data = ("POLYGON ((4337000 2689000, 4337000 2690000, "
+                                    "4338000 2690000, 4338000 2689000, 4337000 2689000))")
+        population_payload = {
+            "grid_id": self.test_id,
+            "polygon_srid": self.test_srid,
+            "polygon": polygon_around_test_data
+        }
+        endpoint = "/"
+        # When
+        response = client.request("GET", endpoint, json=population_payload)
+        # Then
+        self.assertTrue(response.status_code == 200)
+        self.assertTrue(response.json()["population"] == 4)
