@@ -4,14 +4,18 @@ import React from 'react';
 
 const Home: React.FC = () => {
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-50">
-      <motion.img
-        src={GermanySvg}
-        alt="SVG Image"
-        className="w-64 h-64 cursor-pointer"
-        whileHover={{ scale: 1.05 }}
-        transition={{ type: "spring", stiffness: 200, damping: 15 }}
-      />
+    <div className="min-h-screen flex items-center justify-center bg-transparent">
+      <motion.button
+        whileHover={{ scale: 1.1 }}
+        className="cursor-pointer"
+        onClick={() => console.log("Clicked!")} // Add here the jump to the Map
+      >
+        <img
+          src={GermanySvg}
+          alt="Border of Germany"
+          className="h-screen bg-cover bg-center bg-no-repeat"
+        />
+      </motion.button>
     </div>
   );
 };
