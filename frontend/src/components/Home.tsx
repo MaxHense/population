@@ -1,12 +1,13 @@
 import { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import germany from '../assets/germany.svg';
 
 function Home() {
     const [current, setCurrent] = useState(0);
+    const navigate = useNavigate();
 
     const handleGermanyClick = () => {
-        alert('Germany clicked!');
-        // You can add your custom logic here
+        navigate('/germany');
     };
 
     const slides = [
