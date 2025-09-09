@@ -1,16 +1,7 @@
-import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
-import Home from './components/Home';
-import GermanyMap from './components/GermanyMap';
+import Map from './components/Map';
 
 function App() {
-  return (
-    <Router>
-      <Routes>
-        <Route path="/" element={<Home />} />
-        <Route path="/germany" element={<GermanyMap />} />
-      </Routes>
-    </Router>
-  );
+  return <Map />;
 }
 
 export default App;
