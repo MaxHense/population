@@ -1,4 +1,5 @@
-import { useState } from 'react';
+// This is old code. Not used anymore
+/*import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import germany from '../assets/germany.svg';
 
@@ -88,4 +89,4 @@ function Home() {
     );
 }
 
-export default Home;
+export default Home;*/
