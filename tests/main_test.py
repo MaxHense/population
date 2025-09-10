@@ -105,7 +105,7 @@ class TestGridAPI(unittest.TestCase):
         }
         endpoint = "/"
         # When
-        response = client.request("GET", endpoint, json=population_payload)
+        response = client.request("POST", endpoint, json=population_payload)
         # Then
         self.assertTrue(response.status_code == 200)
         self.assertTrue(response.json()["population"] == 21008)
@@ -121,7 +121,7 @@ class TestGridAPI(unittest.TestCase):
         }
         endpoint = "/"
         # When
-        response = client.request("GET", endpoint, json=population_payload)
+        response = client.request("POST", endpoint, json=population_payload)
         # Then
         self.assertTrue(response.status_code == 200)
         self.assertTrue(response.json()["population"] == 4)
