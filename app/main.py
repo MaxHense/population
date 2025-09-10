@@ -26,6 +26,7 @@ from typing import Callable
 from contextlib import asynccontextmanager
 from fastapi import FastAPI, File, Form, UploadFile, HTTPException, Request, Response
 from fastapi.routing import APIRoute
+from fastapi.middleware.cors import CORSMiddleware
 
 import pandas as pd
 
@@ -69,8 +70,19 @@ async def lifespan(my_app: FastAPI):
 app = FastAPI(title="population counter", lifespan=lifespan)
 app.router.route_class = LogRequestResponse
 
+origins = [
+    "http://localhost:5173"
+]
 
-@app.get("/")
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=origins,
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
+@app.post("/")
 async def get_polygon(polygon: PolygonDTO):
     '''Takes a polygon DTO and returns the population within the polygon'''
     grid = GridService.get_by_id(polygon.grid_id)

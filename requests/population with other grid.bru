@@ -1,0 +1,19 @@
+meta {
+  name: population with other grid
+  type: http
+  seq: 5
+}
+
+post {
+  url: http://localhost:8000
+  body: json
+  auth: inherit
+}
+
+body:json {
+  {"grid_id":8,"polygon_srid":4326,"polygon":"POLYGON ((8.020019531250002 51.82219818336938, 7.778320312500001 50.708634400828224, 8.942871093750002 49.937079756975294, 8.020019531250002 51.82219818336938))"}
+}
+
+settings {
+  encodeUrl: true
+}

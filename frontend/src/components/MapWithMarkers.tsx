@@ -7,6 +7,7 @@ type MapWithMarkersProps = {
   center: LatLngExpression;
   zoom?: number;
   clearSignal: boolean;
+  onMarkersChange?: (positions: LatLngExpression[]) => void; // <-- Add this line
 };
 
 function isLatLngObject(obj: any): obj is { lat: number; lng: number } {
@@ -23,7 +24,7 @@ function areLatLngEqual(a: LatLngExpression, b: LatLngExpression) {
   return false;
 }
 
-function ClickMarkers({ clearSignal }: { clearSignal: boolean }) {
+function ClickMarkers({ clearSignal, onMarkersChange }: { clearSignal: boolean; onMarkersChange?: (positions: LatLngExpression[]) => void }) {
   const [positions, setPositions] = useState<{ pos: LatLngExpression }[]>([]);
 
   useMapEvent('click', (e: LeafletMouseEvent) => {
@@ -39,6 +40,12 @@ function ClickMarkers({ clearSignal }: { clearSignal: boolean }) {
       setPositions([]);
     }
   }, [clearSignal]);
+
+  useEffect(() => {
+    if (onMarkersChange) {
+      onMarkersChange(positions.map(p => p.pos));
+    }
+  }, [positions, onMarkersChange]);
 
   const handleMarkerClick = (clickedPos: LatLngExpression) => {
     setPositions((prev) => prev.filter(({ pos }) => !(areLatLngEqual(pos, clickedPos))));
@@ -59,14 +66,14 @@ function ClickMarkers({ clearSignal }: { clearSignal: boolean }) {
   );
 }
 
-export function MapWithMarkers({ center, zoom = 6, clearSignal }: MapWithMarkersProps) {
+export function MapWithMarkers({ center, zoom = 6, clearSignal, onMarkersChange }: MapWithMarkersProps) {
   return (
     <MapContainer center={center} zoom={zoom} style={{ width: '100%', height: '100%' }}>
       <TileLayer
         attribution='&copy; <a href="https://osm.org/copyright">OpenStreetMap</a> contributors'
         url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
       />
-      <ClickMarkers clearSignal={clearSignal} />
+      <ClickMarkers clearSignal={clearSignal} onMarkersChange={onMarkersChange} />
     </MapContainer>
   );
 }
