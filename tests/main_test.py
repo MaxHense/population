@@ -4,7 +4,7 @@ import unittest
 
 from sqlmodel import SQLModel, create_engine
 from sqlalchemy.orm import scoped_session, sessionmaker
-from testcontainers.postgres import PostgresContainer
+from testcontainers.community.postgres import PostgresContainer
 from fastapi.testclient import TestClient
 from app.main import app
 from app.log import logger
@@ -25,6 +25,7 @@ class TestGridAPI(unittest.TestCase):
             username="postgres",
             password="postgres",
             dbname="population",
+            driver="psycopg",
         )
         cls.postgis.start()
 
