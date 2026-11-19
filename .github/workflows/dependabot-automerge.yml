@@ -1,10 +1,10 @@
 name: Dependabot auto-merge
 
-# Daily: merge Dependabot PRs that are open for 2+ days and fully green.
+# Hourly: merge Dependabot PRs that are open for 2+ days and fully green.
 # Dependabot "cooldown" only delays opening the PR, this delays the merge.
 on:
   schedule:
-    - cron: "0 6 * * *"
+    - cron: "17 * * * *"   # hourly, so a PR merges ~2 days after opening, not up to 3
   workflow_dispatch:
 
 permissions:

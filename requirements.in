@@ -1,0 +1,12 @@
+# Runtime dependencies (direct only). After editing, regenerate the lock file, see README "Dependencies".
+fastapi==0.163.1
+uvicorn==0.54.0
+numpy==2.5.5
+pandas==3.1.1
+python-multipart==0.0.34
+sqlmodel==0.0.50
+alembic==1.20.1
+psycopg[binary]==3.3.9
+python-dotenv==1.2.4
+GeoAlchemy2==0.21.0
+pyproj==3.8.0

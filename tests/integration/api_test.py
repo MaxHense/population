@@ -7,9 +7,11 @@ from sqlalchemy.orm import scoped_session, sessionmaker
 from testcontainers.community.postgres import PostgresContainer
 from fastapi.testclient import TestClient
 from app.main import app
-from app.log import logger
+from tests.images import POSTGIS_IMAGE
+import logging
 
 client = TestClient(app)
+logger = logging.getLogger(__name__)
 ADMIN_TOKEN = "integration-test-token"
 
 
@@ -22,7 +24,7 @@ class TestGridAPI(unittest.TestCase):
     def setUpClass(cls):
         # Setup PostGIS container
         cls.postgis = PostgresContainer(
-            image="postgis/postgis:latest",
+            image=POSTGIS_IMAGE,
             username="postgres",
             password="postgres",
             dbname="population",
