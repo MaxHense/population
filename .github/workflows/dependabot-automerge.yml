@@ -13,7 +13,7 @@ permissions:
 jobs:
   automerge:
     # Merge only Dependabot PRs whose CI run succeeded completely:
-    # Python build + lint + tests (job "build") AND frontend build (job "frontend")
+    # Python build + lint + tests (job "build")
     if: >
       github.event.workflow_run.event == 'pull_request' &&
       github.event.workflow_run.conclusion == 'success' &&
