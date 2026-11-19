@@ -1,29 +1,34 @@
 name: Dependabot auto-merge
 
-# Runs only after the CI workflow has finished
+# Daily: merge Dependabot PRs that are open for 2+ days and fully green.
+# Dependabot "cooldown" only delays opening the PR, this delays the merge.
 on:
-  workflow_run:
-    workflows: ["Build application"]
-    types: [completed]
+  schedule:
+    - cron: "0 6 * * *"
+  workflow_dispatch:
 
 permissions:
   contents: write
   pull-requests: write
+  actions: write
 
 jobs:
   automerge:
-    # Merge only Dependabot PRs whose CI run succeeded completely:
-    # Python build + lint + tests (job "build")
-    if: >
-      github.event.workflow_run.event == 'pull_request' &&
-      github.event.workflow_run.conclusion == 'success' &&
-      github.event.workflow_run.actor.login == 'dependabot[bot]'
     runs-on: ubuntu-latest
     steps:
-      # --match-head-commit: only merge exactly the commit that was tested
-      - run: gh pr merge "$BRANCH" --squash --match-head-commit "$SHA"
-        env:
+      - env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           GH_REPO: ${{ github.repository }}
-          BRANCH: ${{ github.event.workflow_run.head_branch }}
-          SHA: ${{ github.event.workflow_run.head_sha }}
+        run: |
+          cutoff=$(date -u -d '2 days ago' +%Y-%m-%dT%H:%M:%SZ)
+          merged=0
+          for pr in $(gh pr list --author app/dependabot --state open --json number,createdAt \
+                       --jq ".[] | select(.createdAt < \"$cutoff\") | .number"); do
+            # non-zero exit if a check failed or is still pending
+            gh pr checks "$pr" > /dev/null || { echo "#$pr: checks not green, skip"; continue; }
+            sha=$(gh pr view "$pr" --json headRefOid --jq .headRefOid)
+            # conflict after an earlier merge: skip, Dependabot rebases, next run merges
+            gh pr merge "$pr" --squash --match-head-commit "$sha" && merged=1 || echo "#$pr: merge failed, skip"
+          done
+          # merges via GITHUB_TOKEN trigger no push event, so run CI on main explicitly
+          if [ "$merged" = 1 ]; then gh workflow run "Build application" --ref main; fi
