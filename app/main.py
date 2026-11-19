@@ -15,18 +15,22 @@ Modules and Libraries:
 - app.logger: Provides logging functionality.
 Endpoints:
 - GET /: Accepts a grid ID and a polygon definition, retrieves the population
-- POST /upload/: Accepts a grid definition, a CSV file, and a population key,
+- POST /admin/grids: (needs ADMIN_TOKEN) Accepts a grid definition, a CSV file,
+    and a population key,
     processes the data, and returns the processed grid information.
 """
 import json
+import os
+import secrets
 import subprocess
 
 from io import StringIO
 from typing import Callable
 from contextlib import asynccontextmanager
-from fastapi import FastAPI, File, Form, UploadFile, HTTPException, Request, Response
+from fastapi import Depends, FastAPI, File, Form, UploadFile, HTTPException, Request, Response
 from fastapi.routing import APIRoute
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 
 import pandas as pd
 
@@ -82,6 +86,20 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+_bearer = HTTPBearer(auto_error=False)
+
+
+def require_admin(credentials: HTTPAuthorizationCredentials | None = Depends(_bearer)):
+    """Admin endpoints exist only if ADMIN_TOKEN is set,
+    then a matching bearer token is required."""
+    token = os.environ.get("ADMIN_TOKEN")
+    if not token:
+        raise HTTPException(status_code=404)
+    given = credentials.credentials.encode() if credentials else b""
+    if not secrets.compare_digest(given, token.encode()):
+        raise HTTPException(status_code=401, headers={"WWW-Authenticate": "Bearer"})
+
+
 @app.post("/")
 async def get_polygon(polygon: PolygonDTO):
     '''Takes a polygon DTO and returns the population within the polygon'''
@@ -97,7 +115,7 @@ async def get_polygon(polygon: PolygonDTO):
     return {"population": poulation}
 
 
-@app.post("/upload/")
+@app.post("/admin/grids", dependencies=[Depends(require_admin)])
 async def upload_file(
     grid: str = Form(...),
     file: UploadFile = File(...),
