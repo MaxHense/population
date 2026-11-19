@@ -50,11 +50,24 @@ Running several replicas? Run `alembic upgrade head` once as a separate job inst
 
 ```bash
 python -m venv .venv && . .venv/bin/activate
-pip install -r requirements-dev.txt
+pip install --require-hashes -r requirements.txt -r requirements-dev.txt
 cp .env.example .env            # point DBURL to a PostGIS
 alembic upgrade head
 uvicorn app.main:app --reload --env-file .env
 ```
+
+## Dependencies
+
+Direct dependencies live in `requirements.in` (runtime) and `requirements-dev.in` (tests, lint).
+`requirements.txt` and `requirements-dev.txt` are generated lock files: every package, including transitive ones, with exact version and hashes.
+Do not edit them by hand. After changing an `.in` file:
+
+```bash
+pip-compile --allow-unsafe --generate-hashes --strip-extras --output-file=requirements.txt requirements.in
+pip-compile --allow-unsafe --generate-hashes --strip-extras --output-file=requirements-dev.txt requirements-dev.in
+```
+
+Dependabot updates both and regenerates the hashes.
 
 ## Test
 

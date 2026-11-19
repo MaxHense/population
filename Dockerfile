@@ -6,7 +6,8 @@ ENV PYTHONDONTWRITEBYTECODE=1 \
 
 WORKDIR /app
 COPY requirements.txt .
-RUN pip install --no-cache-dir -r requirements.txt
+# lock file with hashes: every package, incl. transitive, is verified
+RUN pip install --no-cache-dir --require-hashes -r requirements.txt
 
 COPY alembic.ini .
 COPY migrations migrations
