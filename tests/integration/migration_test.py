@@ -7,12 +7,14 @@ from alembic.config import Config
 from sqlalchemy import create_engine, inspect, text
 from testcontainers.community.postgres import PostgresContainer
 
+from tests.images import POSTGIS_IMAGE
+
 ROOT = Path(__file__).parents[2]
 
 
 @pytest.fixture(scope="module")
 def fresh_db_url():
-    with PostgresContainer("postgis/postgis:latest", driver="psycopg") as pg:
+    with PostgresContainer(POSTGIS_IMAGE, driver="psycopg") as pg:
         admin = create_engine(pg.get_connection_url(), isolation_level="AUTOCOMMIT")
         with admin.connect() as conn:
             # template0: PostGIS binaries installed, extension NOT enabled

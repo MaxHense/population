@@ -1,0 +1,8 @@
+# Dev/test tools (direct only). After editing, regenerate the lock file, see README "Dependencies".
+-c requirements.txt
+testcontainers==4.15.0
+pytest==9.2.0
+httpx2==2.16.2
+pylint==4.1.4
+flake8==7.5.0
+pip-tools==7.7.0
