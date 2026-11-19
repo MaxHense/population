@@ -3,6 +3,3 @@
 .venv/**
 data/**
 .vscode/**
-node_modules
-dist
-docs/**
