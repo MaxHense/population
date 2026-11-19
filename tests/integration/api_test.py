@@ -7,9 +7,10 @@ from sqlalchemy.orm import scoped_session, sessionmaker
 from testcontainers.community.postgres import PostgresContainer
 from fastapi.testclient import TestClient
 from app.main import app
-from app.log import logger
+import logging
 
 client = TestClient(app)
+logger = logging.getLogger(__name__)
 ADMIN_TOKEN = "integration-test-token"
 
 

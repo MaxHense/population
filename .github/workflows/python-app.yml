@@ -18,7 +18,7 @@ jobs:
       with:
         python-version: "3.14"
         cache: pip
-    - run: pip install -r requirements.txt
+    - run: pip install -r requirements-dev.txt
     - name: pylint
       run: pylint --init-hook 'import sys; sys.path.insert(0, ".")' $(git ls-files 'app/*.py') --fail-under=8.0
     - name: flake8
@@ -36,7 +36,7 @@ jobs:
       with:
         python-version: "3.14"
         cache: pip
-    - run: pip install -r requirements.txt
+    - run: pip install -r requirements-dev.txt
     - run: pytest tests/unit -v
 
   integration:
@@ -47,7 +47,7 @@ jobs:
       with:
         python-version: "3.14"
         cache: pip
-    - run: pip install -r requirements.txt
+    - run: pip install -r requirements-dev.txt
     - name: Enable Docker socket for testcontainers
       run: sudo chmod 666 /var/run/docker.sock
     - run: pytest tests/integration -v

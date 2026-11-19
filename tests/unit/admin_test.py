@@ -57,3 +57,22 @@ def test_valid_token_passes_auth_and_reaches_validation(monkeypatch):
     # invalid JSON -> 400 proves the request got past auth (and never hit the DB)
     response = upload({"Authorization": f"Bearer {TOKEN}"}, grid="not json")
     assert response.status_code == 400
+
+
+def test_invalid_data_definition_json_names_the_field(monkeypatch):
+    monkeypatch.setenv("ADMIN_TOKEN", TOKEN)
+    response = client.post(
+        "/admin/grids",
+        files={"file": ("test.csv", b"x;y;Einwohner\n", "text/csv")},
+        data={"grid": GRID, "data_definition": "not json"},
+        headers={"Authorization": f"Bearer {TOKEN}"},
+    )
+    assert response.status_code == 400
+    assert "data_definition" in response.json()["detail"]
+
+
+def test_grid_with_missing_fields_is_rejected(monkeypatch):
+    monkeypatch.setenv("ADMIN_TOKEN", TOKEN)
+    response = upload({"Authorization": f"Bearer {TOKEN}"}, grid=json.dumps({"name": "Zensus"}))
+    assert response.status_code == 400
+    assert "grid" in response.json()["detail"]

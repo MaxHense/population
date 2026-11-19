@@ -1,90 +1,42 @@
 """
-This module defines the main application logic for a FastAPI-based service
-that processes grid data and population information.
-The application provides an endpoint to upload a grid definition and a CSV
-file containing population data. The uploaded data is validated, processed,
-and stored in the application's data model.
-Modules and Libraries:
-- pandas: Used for processing CSV data.
-- json: Used for parsing and validating JSON input.
-- contextlib: Provides utilities for managing application lifespan.
-- fastapi: Framework for building the web application.
-- io: Used for handling in-memory file operations.
-- app.models: Contains data transfer object (DTO) definitions.
-- app.model: Contains core application models.
-- app.logger: Provides logging functionality.
+FastAPI app: population inside a polygon.
+
+Stateless. All configuration comes from environment variables:
+- DBURL: PostGIS connection URL (required)
+- ADMIN_TOKEN: enables admin endpoints, sent as bearer token (optional)
+- CORS_ORIGINS: comma separated origins allowed to call the API from a browser (optional)
+
+Migrations are not run here; the container entrypoint runs `alembic upgrade head`.
+
 Endpoints:
-- GET /: Accepts a grid ID and a polygon definition, retrieves the population
-- POST /admin/grids: (needs ADMIN_TOKEN) Accepts a grid definition, a CSV file,
-    and a population key,
-    processes the data, and returns the processed grid information.
+- POST /: population inside a polygon
+- GET /grid: all grids
+- POST /admin/grids: (needs ADMIN_TOKEN) upload a grid definition and a CSV with population
 """
-import json
 import os
 import secrets
-import subprocess
-
 from io import StringIO
-from typing import Callable
-from contextlib import asynccontextmanager
-from fastapi import Depends, FastAPI, File, Form, UploadFile, HTTPException, Request, Response
-from fastapi.routing import APIRoute
-from fastapi.middleware.cors import CORSMiddleware
-from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 
 import pandas as pd
+from fastapi import Depends, FastAPI, File, Form, HTTPException, UploadFile
+from fastapi.middleware.cors import CORSMiddleware
+from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
+from pydantic import BaseModel, ValidationError
 
-from app.models.dto import GridDTO, PolygonDTO, DataDTO
-from app.models.db import Grid
-from app.log import logger
+from app.models.dto import DataDTO, GridDTO, PolygonDTO
 from app.services.grid import GridService
 from app.services.location import LocationService
 
+app = FastAPI(title="population counter")
 
-class LogRequestResponse(APIRoute):
-    """
-    Handles that response of app gets logged
-    """
-    def get_route_handler(self) -> Callable:
-        original_route_handler = super().get_route_handler()
-
-        async def custom_route_handler(request: Request) -> Response:
-            req = await request.body()
-            logger.info("Request: %s", req)
-            response: Response = await original_route_handler(request)
-            logger.info("Response: %s", response.body)
-            return response
-
-        return custom_route_handler
-
-
-@asynccontextmanager
-async def lifespan(my_app: FastAPI):
-    """
-    Checks if alembic has successfully upgraded the database
-    """
-    try:
-        subprocess.check_call(["alembic", "upgrade", "head"])
-        logger.info("Migrations run successfully for app: %s", my_app.title)
-    except subprocess.CalledProcessError as exc:
-        logger.error("Failed to run migrations, because of %s", exc, exc_info=True)
-        raise RuntimeError("Database migration failed. Shutting down server.") from exc
-    yield
-
-app = FastAPI(title="population counter", lifespan=lifespan)
-app.router.route_class = LogRequestResponse
-
-origins = [
-    "http://localhost:5173"
-]
-
-app.add_middleware(
-    CORSMiddleware,
-    allow_origins=origins,
-    allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
-)
+cors_origins = [o.strip() for o in os.environ.get("CORS_ORIGINS", "").split(",") if o.strip()]
+if cors_origins:
+    app.add_middleware(
+        CORSMiddleware,
+        allow_origins=cors_origins,
+        allow_methods=["GET", "POST"],
+        allow_headers=["Authorization", "Content-Type"],
+    )
 
 _bearer = HTTPBearer(auto_error=False)
 
@@ -100,19 +52,27 @@ def require_admin(credentials: HTTPAuthorizationCredentials | None = Depends(_be
         raise HTTPException(status_code=401, headers={"WWW-Authenticate": "Bearer"})
 
 
+def parse_form_json[T: BaseModel](model: type[T], field: str, value: str) -> T:
+    """Parse a JSON form field into a model, 400 on invalid JSON or missing fields."""
+    try:
+        return model.model_validate_json(value)
+    except ValidationError as exc:
+        detail = f"Invalid '{field}': {exc.errors()[0]['msg']}"
+        raise HTTPException(status_code=400, detail=detail) from exc
+
+
 @app.post("/")
 async def get_polygon(polygon: PolygonDTO):
     '''Takes a polygon DTO and returns the population within the polygon'''
     grid = GridService.get_by_id(polygon.grid_id)
     if not grid:
         raise HTTPException(status_code=404, detail="Grid not found")
-    poulation = LocationService.get_population_by_polygon(
+    population = LocationService.get_population_by_polygon(
         grid,
         polygon.polygon,
         polygon.polygon_srid
     )
-    print(poulation)
-    return {"population": poulation}
+    return {"population": population}
 
 
 @app.post("/admin/grids", dependencies=[Depends(require_admin)])
@@ -123,23 +83,8 @@ async def upload_file(
 ):
     '''Takes a grid definition, a CSV file, and a population key,
         processes the data, and returns the processed grid information'''
-    try:
-        grid_data = json.loads(grid)
-        grid_model = GridDTO(**grid_data)
-    except json.JSONDecodeError as exc:
-        raise HTTPException(
-            status_code=400,
-            detail="Invalid JSON for 'grid'"
-        ) from exc
-
-    try:
-        data_definition = json.loads(data_definition)
-        data_model = DataDTO(**data_definition)
-    except json.JSONDecodeError as exc:
-        raise HTTPException(
-            status_code=400,
-            detail="Invalid JSON for 'grid'"
-        ) from exc
+    grid_model = parse_form_json(GridDTO, "grid", grid)
+    data_model = parse_form_json(DataDTO, "data_definition", data_definition)
 
     new_grid = GridService.set_new_grid(grid_model)
 
@@ -162,10 +107,3 @@ async def upload_file(
 def get_grid():
     '''Returns all Grids of database'''
     return GridService.list_grids()
-
-
-@app.post("/grid")
-def add_grid(grid: GridDTO):
-    '''Takes a grid DTO and adds it to the database'''
-    new_grid = Grid.from_dto(grid)
-    return new_grid

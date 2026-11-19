@@ -1,0 +1,38 @@
+# Local development: PostGIS + API with hot reload.
+#   docker compose up
+# API: http://localhost:8000/docs   DB: localhost:54320 (postgres/postgres)
+services:
+  db:
+    image: postgis/postgis:17-3.5
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: population
+    ports:
+      - "127.0.0.1:54320:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      # -h: over TCP, the temporary init server (unix socket only) does not count
+      test: ["CMD", "pg_isready", "-h", "127.0.0.1", "-U", "postgres", "-d", "population"]
+      interval: 2s
+      retries: 30
+
+  api:
+    build: .
+    environment:
+      DBURL: postgresql+psycopg://postgres:postgres@db:5432/population
+      ADMIN_TOKEN: dev-token
+      CORS_ORIGINS: http://localhost:5173
+    ports:
+      - "127.0.0.1:8000:8000"
+    volumes:
+      - ./app:/app/app
+      - ./migrations:/app/migrations
+    command: sh -c "alembic upgrade head && exec uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload"
+    depends_on:
+      db:
+        condition: service_healthy
+
+volumes:
+  pgdata:
