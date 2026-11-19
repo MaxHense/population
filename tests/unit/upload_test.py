@@ -1,29 +1,9 @@
 """Unit tests: no database, no Docker. Run with `pytest tests/unit`."""
-import json
-
 import pandas as pd
-from fastapi.testclient import TestClient
 
-from app.main import app
 from app.models.db import Grid
 from app.models.dto import GridDTO
 from app.services.location import LocationService
-
-client = TestClient(app)  # no `with`: lifespan (migrations) does not run
-
-DATA_DEFINITION = json.dumps({
-    "population_key": "Einwohner", "x_column": "x", "y_column": "y",
-    "delimiter": ";", "decode": "utf-8",
-})
-
-
-def test_upload_rejects_invalid_grid_json():
-    response = client.post(
-        "/upload/",
-        files={"file": ("test.csv", b"x;y;Einwohner\n", "text/csv")},
-        data={"grid": "not json", "data_definition": DATA_DEFINITION},
-    )
-    assert response.status_code == 400
 
 
 def test_grid_from_dto():

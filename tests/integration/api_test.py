@@ -10,6 +10,7 @@ from app.main import app
 from app.log import logger
 
 client = TestClient(app)
+ADMIN_TOKEN = "integration-test-token"
 
 
 class TestGridAPI(unittest.TestCase):
@@ -30,6 +31,7 @@ class TestGridAPI(unittest.TestCase):
         cls.postgis.start()
 
         os.environ["DBURL"] = cls.postgis.get_connection_url()
+        os.environ["ADMIN_TOKEN"] = ADMIN_TOKEN
 
         cls.engine = create_engine(os.environ["DBURL"], echo=False)
         cls.session = scoped_session(sessionmaker(autocommit=False, autoflush=False, bind=cls.engine))
@@ -72,7 +74,8 @@ class TestGridAPI(unittest.TestCase):
         # When
         with open(file_path, "rb") as f:
             response = client.post(
-                "/upload",
+                "/admin/grids",
+                headers={"Authorization": f"Bearer {ADMIN_TOKEN}"},
                 files={"file": ("test.csv", f, "text/csv")},
                 data={
                     "grid": json.dumps(grid_payload),
