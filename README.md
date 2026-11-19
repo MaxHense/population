@@ -20,10 +20,10 @@ uvicorn app.main:app --env-file=./.env
 
 ## Test
 
-To run Test use
-
 ```bash
-pytest -v
+pytest tests/unit         # fast, no database
+pytest tests/integration  # needs Docker (testcontainers PostGIS)
+pytest                   # all
 ```
 
 ## Contributing

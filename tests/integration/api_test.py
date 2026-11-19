@@ -54,7 +54,7 @@ class TestGridAPI(unittest.TestCase):
     def test_upload_population_data(self):
         # Upload
         # Given
-        file_path = os.path.join("tests", "resources", "Test_Zensus.csv")
+        file_path = os.path.join(os.path.dirname(__file__), "resources", "Test_Zensus.csv")
         test_name = "Test Data Zensus 1km"
         grid_payload = {
             "name": test_name,

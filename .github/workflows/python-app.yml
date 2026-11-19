@@ -1,46 +1,53 @@
-# This workflow will install Python dependencies, run tests and lint with a single version of Python
-# For more information see: https://docs.github.com/en/actions/automating-builds-and-tests/building-and-testing-python
-
 name: Build application
 
+# Runs on every push (any branch), every PR and manually.
 on:
   push:
-    branches: [ "main" ]
   pull_request:
-    branches: [ "main" ]
   workflow_dispatch:
 
 permissions:
   contents: read
 
 jobs:
-  build:
-
+  lint:
     runs-on: ubuntu-latest
-
     steps:
     - uses: actions/checkout@v7
-    - name: Set up Python 3.14
-      uses: actions/setup-python@v7
+    - uses: actions/setup-python@v7
       with:
         python-version: "3.14"
-    - name: Install dependencies
-      run: |
-        python -m pip install --upgrade pip
-        if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
-    - name: Lint with pylint
-      run: |
-        pylint --init-hook 'import sys; sys.path.insert(0, ".")' $(git ls-files 'app/*.py') --fail-under=8.0
-    - name: Lint with flake8
+        cache: pip
+    - run: pip install -r requirements.txt
+    - name: pylint
+      run: pylint --init-hook 'import sys; sys.path.insert(0, ".")' $(git ls-files 'app/*.py') --fail-under=8.0
+    - name: flake8
       run: |
         # stop the build if there are Python syntax errors or undefined names
         flake8 . --count --select=E9,F63,F7,F82 --show-source --statistics --extend-exclude .venv,migrations
         # exit-zero treats all errors as warnings. The GitHub editor is 127 chars wide
         flake8 . --count --exit-zero --max-complexity=10 --max-line-length=127 --statistics --extend-exclude .venv,migrations
-    - name: Enable Docker socket
-      run: |
-        sudo chmod 666 /var/run/docker.sock
-    - name: Test Flask Application
-      run: |
-        pytest -v
 
+  unit:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v7
+    - uses: actions/setup-python@v7
+      with:
+        python-version: "3.14"
+        cache: pip
+    - run: pip install -r requirements.txt
+    - run: pytest tests/unit -v
+
+  integration:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v7
+    - uses: actions/setup-python@v7
+      with:
+        python-version: "3.14"
+        cache: pip
+    - run: pip install -r requirements.txt
+    - name: Enable Docker socket for testcontainers
+      run: sudo chmod 666 /var/run/docker.sock
+    - run: pytest tests/integration -v
