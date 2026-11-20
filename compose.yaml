@@ -3,7 +3,7 @@
 # API: http://localhost:8000/docs   DB: localhost:54320 (postgres/postgres)
 services:
   db:
-    image: postgis/postgis:17-3.5@sha256:01a6a70e41e6c4467c8f55f6063555ed72db2d6662cd0d571040d42eadaeb6f6
+    image: postgis/postgis:17-3.7@sha256:b2379049e1d7623127ec61ba802a44706109bf91c23ec76b8f323888fd037ed9
     environment:
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: postgres
