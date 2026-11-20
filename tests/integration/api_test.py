@@ -1,6 +1,9 @@
 import os
 import json
 import unittest
+from unittest import mock
+
+from pyproj import Transformer
 
 from sqlmodel import SQLModel, create_engine
 from sqlalchemy.orm import scoped_session, sessionmaker
@@ -115,6 +118,15 @@ class TestGridAPI(unittest.TestCase):
         # Then
         self.assertTrue(response.status_code == 200)
         self.assertTrue(response.json()["population"] == 21008)
+        cells = response.json()["cells"]
+        self.assertEqual(len(cells), 99)
+        self.assertEqual(sum(c["population"] for c in cells), 21008)
+
+        # Too many cells: total still returned, cells left out
+        with mock.patch("app.services.location.MAX_CELLS", 50):
+            response = client.request("POST", endpoint, json=population_payload)
+        self.assertEqual(response.json()["population"], 21008)
+        self.assertIsNone(response.json()["cells"])
 
         # Population of first entry of test data
         # Given
@@ -131,3 +143,20 @@ class TestGridAPI(unittest.TestCase):
         # Then
         self.assertTrue(response.status_code == 200)
         self.assertTrue(response.json()["population"] == 4)
+        cells = response.json()["cells"]
+        self.assertEqual(len(cells), 1)
+        self.assertEqual(cells[0]["population"], 4)
+        # cell square around centre 4337500/2689500 (EPSG:3035), corners as [lat, lng]
+        to_wgs84 = Transformer.from_crs(3035, 4326)
+        expected = sorted(to_wgs84.transform(y, x) for x, y in [
+            (4337000, 2689000), (4337000, 2690000), (4338000, 2690000), (4338000, 2689000)])
+        for got, want in zip(sorted(cells[0]["polygon"]), expected):
+            self.assertAlmostEqual(got[0], want[0], places=6)
+            self.assertAlmostEqual(got[1], want[1], places=6)
+
+        # Polygon between cell centres: 0 people, no cells
+        population_payload["polygon"] = ("POLYGON ((4337600 2689600, 4337600 2689900, "
+                                         "4337900 2689900, 4337900 2689600, 4337600 2689600))")
+        response = client.request("POST", endpoint, json=population_payload)
+        self.assertEqual(response.json()["population"], None)
+        self.assertEqual(response.json()["cells"], [])
