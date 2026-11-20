@@ -9,7 +9,7 @@ Stateless. All configuration comes from environment variables:
 Migrations are not run here; the container entrypoint runs `alembic upgrade head`.
 
 Endpoints:
-- POST /: population inside a polygon
+- POST /: population inside a polygon, plus the counted cells (None if too many)
 - GET /grid: all grids
 - POST /admin/grids: (needs ADMIN_TOKEN) upload a grid definition and a CSV with population
 """
@@ -72,7 +72,8 @@ async def get_polygon(polygon: PolygonDTO):
         polygon.polygon,
         polygon.polygon_srid
     )
-    return {"population": population}
+    cells = LocationService.get_cells_by_polygon(grid, polygon.polygon, polygon.polygon_srid)
+    return {"population": population, "cells": cells}
 
 
 @app.post("/admin/grids", dependencies=[Depends(require_admin)])
