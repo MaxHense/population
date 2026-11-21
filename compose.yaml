@@ -22,7 +22,6 @@ services:
     build: .
     environment:
       DBURL: postgresql+psycopg://postgres:postgres@db:5432/population
-      ADMIN_TOKEN: dev-token
       CORS_ORIGINS: http://localhost:5173
     ports:
       - "127.0.0.1:8000:8000"
