@@ -36,6 +36,15 @@ docker run -e DBURL=... -e CORS_ORIGINS=... -p 8000:8000 population-api
 On start the container runs `alembic upgrade head` (creates the PostGIS extension and tables if needed), then the API.
 Running several replicas? Run `alembic upgrade head` once as a separate job instead.
 
+## Releases
+
+Push a tag `v*` on `main` (e.g. `git tag v1.0.0 && git push origin v1.0.0`).
+`.github/workflows/release.yml` builds the image, runs it against a fresh PostGIS
+(migrations + one query) and only then pushes `ghcr.io/<owner>/population_backend:<tag>`
+with a provenance attestation. The digest is in the workflow summary; deploy by digest, not by tag.
+
+Verify an image: `gh attestation verify oci://ghcr.io/<owner>/population_backend@<digest> --owner <owner>`
+
 ## Data: Eurostat Census Grid 2021 (Europe, 1 km)
 
 The API is read only. Data is loaded by scripts in `scripts/` (not part of the image), from your machine straight into the database, after the backend ran once (it creates the schema):
