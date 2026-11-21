@@ -23,10 +23,10 @@ def client_with(monkeypatch):
 
 
 def preflight(client, origin):
-    return client.options("/admin/grids", headers={
+    return client.options("/", headers={
         "Origin": origin,
         "Access-Control-Request-Method": "POST",
-        "Access-Control-Request-Headers": "authorization",
+        "Access-Control-Request-Headers": "content-type",
     })
 
 
@@ -34,7 +34,7 @@ def test_configured_origin_is_allowed(client_with):
     response = preflight(client_with(FRONTEND), FRONTEND)
     assert response.status_code == 200
     assert response.headers["access-control-allow-origin"] == FRONTEND
-    assert "authorization" in response.headers["access-control-allow-headers"].lower()
+    assert "content-type" in response.headers["access-control-allow-headers"].lower()
 
 
 def test_several_origins_with_spaces(client_with):

@@ -13,24 +13,14 @@ Starts PostGIS and the API with hot reload (`app/` and `migrations/` are mounted
 
 - API docs: http://localhost:8000/docs
 - Database: `localhost:54320`, user/password `postgres`
-- Admin token: `dev-token`
 
-Load data:
-
-```bash
-curl -H 'Authorization: Bearer dev-token' \
-  -F file=@population.csv \
-  --form-string grid='{"name":"Zensus 2022 1km","size":"1km","srid":3035}' \
-  --form-string data_definition='{"population_key":"Einwohner","x_column":"x_mp_1km","y_column":"y_mp_1km","delimiter":";","decode":"utf-8"}' \
-  http://localhost:8000/admin/grids
-```
+Load data: see [Data](#data-eurostat-census-grid-2021-europe-1-km).
 
 ## Configuration
 
 | Variable | Required | Meaning |
 |---|---|---|
 | `DBURL` | yes | PostGIS connection URL, e.g. `postgresql+psycopg://user:pw@host:5432/db` |
-| `ADMIN_TOKEN` | no | Enables `POST /admin/grids` (upload). Send as `Authorization: Bearer <token>`. Unset = admin API disabled (404). Use a long random value, e.g. `openssl rand -hex 32`. |
 | `CORS_ORIGINS` | no | Comma separated browser origins allowed to call the API, e.g. `https://population.example.org`. Unset = no cross-origin access. |
 | `PORT` | no | Port inside the container, default `8000`. |
 
@@ -40,11 +30,24 @@ See `.env.example`.
 
 ```bash
 docker build -t population-api .
-docker run -e DBURL=... -e ADMIN_TOKEN=... -e CORS_ORIGINS=... -p 8000:8000 population-api
+docker run -e DBURL=... -e CORS_ORIGINS=... -p 8000:8000 population-api
 ```
 
 On start the container runs `alembic upgrade head` (creates the PostGIS extension and tables if needed), then the API.
 Running several replicas? Run `alembic upgrade head` once as a separate job instead.
+
+## Data: Eurostat Census Grid 2021 (Europe, 1 km)
+
+The API is read only. Data is loaded by scripts in `scripts/` (not part of the image), from your machine straight into the database, after the backend ran once (it creates the schema):
+
+```bash
+curl -O https://gisco-services.ec.europa.eu/census/2021/Eurostat_Census-GRID_2021_V3.zip
+unzip -j Eurostat_Census-GRID_2021_V3.zip '*/ESTAT_Census_2021_V3.csv'
+DBURL=postgresql+psycopg://... python -m scripts.eurostat ESTAT_Census_2021_V3.csv
+```
+
+About 30 s locally, 280 MB in the database. All cells are stored in EPSG:3035, so one query covers every grid;
+a script for data in another CRS transforms the cell centres on import (`ST_Transform(..., 3035)`). © European Union, source Eurostat; the data is modified (only inhabited cells, cell centres).
 
 ## Development without Docker
 
